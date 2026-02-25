@@ -328,6 +328,20 @@
         <div>
           <div class="chart-lbl">Scores par section</div>
           <canvas id="barChart"></canvas>
+          <div style="display:flex;justify-content:center;gap:20px;margin-top:10px;font-family:'DM Sans',sans-serif;font-size:11px;color:#4a5a8a;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <strong style="color:#002169;">Arithmétique :</strong>
+              <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:rgba(29,113,184,0.88)"></span>
+              <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:rgba(149,193,31,0.88)"></span>
+              <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:rgba(0,144,172,0.88)"></span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <strong style="color:#002169;">Géométrique :</strong>
+              <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:rgba(29,113,184,0.38)"></span>
+              <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:rgba(149,193,31,0.38)"></span>
+              <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:rgba(0,144,172,0.38)"></span>
+            </div>
+          </div>
         </div>
         <div>
           <div class="donut-stack">
@@ -543,16 +557,7 @@ window.addEventListener('DOMContentLoaded', () => {
       responsive: true,
       plugins: {
         legend: {
-          display: true, position: 'bottom',
-          labels: {
-            font: { family: 'DM Sans', size: 10 }, boxWidth: 12, padding: 12,
-            generateLabels: function(chart) {
-              return [
-                { text: 'Arithmétique', fillStyle: 'rgba(29,113,184,0.88)',  strokeStyle: 'transparent', lineWidth: 0 },
-                { text: 'Géométrique',  fillStyle: 'rgba(29,113,184,0.38)',  strokeStyle: 'transparent', lineWidth: 0 },
-              ];
-            }
-          }
+          display: false,
         },
         tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.raw}%` } },
         datalabels: false,
