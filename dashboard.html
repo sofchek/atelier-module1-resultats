@@ -748,7 +748,8 @@ async function loadData() {
   document.getElementById('footerBar').style.display = 'none';
 
   try {
-    const res = await fetch(CSV_URL, { cache: 'no-store' });
+    const bustUrl = CSV_URL + '&_t=' + Date.now();
+    const res = await fetch(bustUrl, { cache: 'no-store' });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const text = await res.text();
     allRows = parseCSV(text);
