@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Tableau de bord — Animateur</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --navy:       #002169;
+  --yellow:     #ffed00;
+  --green:      #95c11f;
+  --teal:       #0090ac;
+  --blue:       #1d71b8;
+  --navy-soft:  #1a3a7a;
+  --navy-light: #d0d8ee;
+  --cream:      #f5f7fa;
+  --cream-dark: #e8ecf2;
+  --white:      #ffffff;
+  --text:       #002169;
+  --text-soft:  #4a5a8a;
+  --shadow:     0 4px 28px rgba(0,33,105,0.10);
+  --shadow-lg:  0 10px 48px rgba(0,33,105,0.18);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--cream);
+  font-family: 'DM Sans', sans-serif;
+  color: var(--text);
+  min-height: 100vh;
+}
+
+body::before {
+  content: '';
+  position: fixed; top: -200px; right: -200px;
+  width: 600px; height: 600px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,33,105,0.06) 0%, transparent 70%);
+  pointer-events: none; z-index: 0;
+}
+
+/* ── Header ── */
+.header {
+  background: var(--navy);
+  padding: 32px 48px;
+  position: relative; overflow: hidden;
+}
+.header::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--yellow), var(--green), var(--teal), var(--blue));
+}
+.header-inner {
+  max-width: 1100px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 20px; flex-wrap: wrap;
+}
+.header-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 28px; font-weight: 900;
+  color: var(--white); letter-spacing: -0.5px;
+}
+.header-title span { color: var(--yellow); }
+.header-meta {
+  display: flex; align-items: center; gap: 16px;
+}
+.date-badge {
+  background: rgba(255,255,255,0.12);
+  color: var(--white); font-size: 13px; font-weight: 500;
+  padding: 6px 14px; border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+.refresh-btn {
+  background: var(--yellow); color: var(--navy);
+  border: none; border-radius: 8px;
+  padding: 8px 18px; font-size: 13px; font-weight: 700;
+  cursor: pointer; transition: all 0.2s;
+  font-family: 'DM Sans', sans-serif;
+}
+.refresh-btn:hover { background: #ffe000; transform: translateY(-1px); }
+
+/* ── Loading / Error ── */
+.state-msg {
+  max-width: 1100px; margin: 60px auto; padding: 0 24px;
+  text-align: center;
+}
+.loading-spinner {
+  width: 48px; height: 48px; border-radius: 50%;
+  border: 4px solid var(--navy-light);
+  border-top-color: var(--navy);
+  animation: spin 0.9s linear infinite;
+  margin: 0 auto 16px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.state-msg p { font-size: 15px; color: var(--text-soft); }
+
+/* ── Filter bar ── */
+.filter-bar {
+  max-width: 1100px; margin: 28px auto 0; padding: 0 24px;
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+}
+.filter-group { display: flex; align-items: center; gap: 8px; }
+.filter-bar label { font-size: 13px; font-weight: 600; color: var(--text-soft); white-space: nowrap; }
+.filter-bar select {
+  background: var(--white); border: 2px solid var(--navy-light);
+  border-radius: 8px; padding: 8px 14px; font-size: 13px;
+  color: var(--text); font-family: 'DM Sans', sans-serif;
+  cursor: pointer; outline: none;
+  transition: border-color 0.2s;
+}
+.filter-bar input[type="date"] {
+  background: var(--white); border: 2px solid var(--navy-light);
+  border-radius: 8px; padding: 8px 14px; font-size: 13px;
+  color: var(--text); font-family: 'DM Sans', sans-serif;
+  cursor: pointer; outline: none; transition: border-color 0.2s;
+}
+.filter-bar select:focus, .filter-bar input[type="date"]:focus { border-color: var(--navy); }
+.filter-divider { width: 1px; height: 28px; background: var(--navy-light); margin: 0 4px; }
+.participant-count {
+  margin-left: auto;
+  background: var(--navy); color: var(--white);
+  border-radius: 20px; padding: 6px 16px;
+  font-size: 13px; font-weight: 600;
+}
+.participant-count span { color: var(--yellow); font-size: 18px; font-weight: 700; }
+
+/* ── Main grid ── */
+.main {
+  max-width: 1100px; margin: 24px auto 80px; padding: 0 24px;
+  display: grid; gap: 24px;
+}
+
+/* ── KPI cards ── */
+.kpi-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+}
+@media(max-width:680px){ .kpi-grid { grid-template-columns: 1fr; } }
+
+.kpi-card {
+  background: var(--white); border-radius: 16px;
+  padding: 24px 20px; box-shadow: var(--shadow);
+  position: relative; overflow: hidden;
+  border-top: 4px solid;
+}
+.kpi-card.resp { border-color: var(--blue); }
+.kpi-card.defi { border-color: var(--green); }
+.kpi-card.glob { border-color: var(--teal); }
+
+.kpi-label {
+  font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+  font-weight: 700; color: var(--text-soft); margin-bottom: 12px;
+}
+.kpi-row { display: flex; align-items: flex-end; gap: 16px; }
+.kpi-block { flex: 1; text-align: center; }
+.kpi-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 38px; font-weight: 900; line-height: 1;
+}
+.kpi-card.resp .kpi-num { color: var(--blue); }
+.kpi-card.defi .kpi-num { color: var(--green); }
+.kpi-card.glob .kpi-num { color: var(--teal); }
+.kpi-sub { font-size: 11px; color: var(--text-soft); margin-top: 4px; font-weight: 500; }
+
+.kpi-vs {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 4px; padding-bottom: 6px;
+}
+.kpi-vs-line {
+  width: 1px; height: 30px;
+  background: var(--cream-dark);
+}
+.kpi-vs-label {
+  font-size: 9px; text-transform: uppercase; letter-spacing: .1em;
+  color: var(--text-soft); font-weight: 600;
+}
+
+.geo-badge {
+  display: inline-block;
+  font-size: 10px; font-weight: 700; letter-spacing: .08em;
+  text-transform: uppercase; padding: 2px 8px; border-radius: 4px;
+  margin-bottom: 6px;
+}
+.kpi-card.resp .geo-badge { background: #d0e4f5; color: var(--blue); }
+.kpi-card.defi .geo-badge { background: #e8f5c0; color: #6a8a15; }
+.kpi-card.glob .geo-badge { background: #d0eef3; color: var(--teal); }
+
+/* ── Chart sections ── */
+.chart-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+}
+@media(max-width:720px){ .chart-grid { grid-template-columns: 1fr; } }
+
+.chart-card {
+  background: var(--white); border-radius: 16px;
+  padding: 24px; box-shadow: var(--shadow);
+}
+.chart-card.full { grid-column: 1 / -1; }
+
+.card-title {
+  font-size: 13px; letter-spacing: .1em; text-transform: uppercase;
+  font-weight: 700; margin-bottom: 20px;
+  display: flex; align-items: center; gap: 8px;
+}
+.card-title-dot {
+  width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+}
+
+/* ── Bar rows ── */
+.bar-rows { display: flex; flex-direction: column; gap: 10px; }
+.bar-row {
+  display: grid;
+  grid-template-columns: 28px 1fr 140px 42px;
+  align-items: center; gap: 10px;
+}
+.bar-qnum {
+  font-size: 11px; font-weight: 700; color: var(--text-soft);
+  text-align: right;
+}
+.bar-qname { font-size: 12px; color: var(--text); line-height: 1.3; }
+.bar-track {
+  height: 8px; background: var(--cream-dark); border-radius: 4px; overflow: hidden;
+}
+.bar-fill {
+  height: 100%; border-radius: 4px;
+  transition: width 0.9s cubic-bezier(.4,0,.2,1);
+}
+.bar-score {
+  font-size: 13px; font-weight: 700; text-align: right;
+}
+.bar-row.low .bar-fill { background: #e53e3e !important; }
+.bar-row.low .bar-score { color: #e53e3e; }
+
+/* ── Comparison chart ── */
+.compare-rows { display: flex; flex-direction: column; gap: 14px; }
+.compare-row { }
+.compare-label {
+  font-size: 11px; color: var(--text-soft); margin-bottom: 5px;
+  display: flex; justify-content: space-between;
+}
+.compare-label strong { color: var(--text); }
+.compare-tracks { display: flex; flex-direction: column; gap: 4px; }
+.compare-track { display: flex; align-items: center; gap: 8px; }
+.compare-track-label {
+  font-size: 10px; font-weight: 600; width: 32px; text-align: right;
+  text-transform: uppercase; letter-spacing: .06em;
+}
+.compare-bar-wrap {
+  flex: 1; height: 10px; background: var(--cream-dark); border-radius: 5px; overflow: hidden;
+}
+.compare-bar {
+  height: 100%; border-radius: 5px;
+  transition: width 1s cubic-bezier(.4,0,.2,1);
+}
+.compare-val {
+  font-size: 12px; font-weight: 700; width: 38px; text-align: right;
+}
+
+/* ── Section divider ── */
+.section-label {
+  font-size: 11px; letter-spacing: .15em; text-transform: uppercase;
+  font-weight: 700; color: var(--text-soft);
+  padding: 4px 0 12px;
+  border-bottom: 2px solid var(--cream-dark);
+  margin-bottom: 16px;
+}
+
+/* ── Footer ── */
+.footer {
+  max-width: 1100px; margin: 0 auto; padding: 0 24px 40px;
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 11px; color: var(--text-soft); flex-wrap: wrap; gap: 8px;
+}
+.footer-sync { display: flex; align-items: center; gap: 6px; }
+.sync-dot {
+  width: 7px; height: 7px; border-radius: 50%; background: var(--green);
+}
+
+/* ── Animations ── */
+.main > * {
+  opacity: 0; transform: translateY(16px);
+  animation: fadeUp 0.5s ease forwards;
+}
+.main > *:nth-child(1) { animation-delay: 0.1s; }
+.main > *:nth-child(2) { animation-delay: 0.2s; }
+.main > *:nth-child(3) { animation-delay: 0.3s; }
+.main > *:nth-child(4) { animation-delay: 0.4s; }
+@keyframes fadeUp { to { opacity: 1; transform: none; } }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-inner">
+    <div class="header-title">Tableau de bord <span>Animateur</span></div>
+    <div class="header-meta">
+      <div class="date-badge" id="dateBadge">—</div>
+      <button class="refresh-btn" onclick="loadData()">↻ Actualiser</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOADING STATE -->
+<div class="state-msg" id="loadingState">
+  <div class="loading-spinner"></div>
+  <p>Chargement des données…</p>
+</div>
+
+<!-- ERROR STATE -->
+<div class="state-msg" id="errorState" style="display:none">
+  <p style="font-size:24px;margin-bottom:12px">⚠️</p>
+  <p>Impossible de charger les données.<br>Vérifiez que le lien Zoho Sheet est accessible et réessayez.</p>
+  <button class="refresh-btn" style="margin-top:20px" onclick="loadData()">Réessayer</button>
+</div>
+
+<!-- FILTER BAR -->
+<div class="filter-bar" id="filterBar" style="display:none">
+  <div class="filter-group">
+    <label for="dateFilter">📅 Date :</label>
+    <input type="date" id="dateFilter" onchange="renderDashboard()"/>
+  </div>
+  <div class="filter-divider"></div>
+  <div class="filter-group">
+    <label for="posteFilter">👤 Poste :</label>
+    <select id="posteFilter" onchange="renderDashboard()">
+      <option value="all">Tous les postes</option>
+    </select>
+  </div>
+  <div class="participant-count">
+    <span id="countNum">0</span> participants
+  </div>
+</div>
+
+<!-- MAIN DASHBOARD -->
+<div class="main" id="dashboard" style="display:none">
+
+  <!-- KPI CARDS -->
+  <div class="kpi-grid">
+    <div class="kpi-card resp">
+      <div class="kpi-label">Responsabilités</div>
+      <div class="kpi-row">
+        <div class="kpi-block">
+          <div class="kpi-num" id="kpiRespArith">—</div>
+          <div class="kpi-sub">Moy. arithmétique %</div>
+        </div>
+        <div class="kpi-vs">
+          <div class="kpi-vs-line"></div>
+          <div class="kpi-vs-label">VS</div>
+          <div class="kpi-vs-line"></div>
+        </div>
+        <div class="kpi-block">
+          <div class="geo-badge">Géom.</div>
+          <div class="kpi-num" id="kpiRespGeo">—</div>
+          <div class="kpi-sub">Moy. géométrique %</div>
+        </div>
+      </div>
+    </div>
+    <div class="kpi-card defi">
+      <div class="kpi-label">Défis</div>
+      <div class="kpi-row">
+        <div class="kpi-block">
+          <div class="kpi-num" id="kpiDefiArith">—</div>
+          <div class="kpi-sub">Moy. arithmétique %</div>
+        </div>
+        <div class="kpi-vs">
+          <div class="kpi-vs-line"></div>
+          <div class="kpi-vs-label">VS</div>
+          <div class="kpi-vs-line"></div>
+        </div>
+        <div class="kpi-block">
+          <div class="geo-badge">Géom.</div>
+          <div class="kpi-num" id="kpiDefiGeo">—</div>
+          <div class="kpi-sub">Moy. géométrique %</div>
+        </div>
+      </div>
+    </div>
+    <div class="kpi-card glob">
+      <div class="kpi-label">Global</div>
+      <div class="kpi-row">
+        <div class="kpi-block">
+          <div class="kpi-num" id="kpiGlobArith">—</div>
+          <div class="kpi-sub">Moy. arithmétique %</div>
+        </div>
+        <div class="kpi-vs">
+          <div class="kpi-vs-line"></div>
+          <div class="kpi-vs-label">VS</div>
+          <div class="kpi-vs-line"></div>
+        </div>
+        <div class="kpi-block">
+          <div class="geo-badge">Géom.</div>
+          <div class="kpi-num" id="kpiGlobGeo">—</div>
+          <div class="kpi-sub">Moy. géométrique %</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMPARISON CHART -->
+  <div class="chart-card full">
+    <div class="card-title">
+      <div class="card-title-dot" style="background:var(--navy)"></div>
+      Arithmétique vs Géométrique — par section
+    </div>
+    <div class="compare-rows" id="compareRows"></div>
+  </div>
+
+  <!-- PER QUESTION CHARTS -->
+  <div class="chart-card">
+    <div class="card-title">
+      <div class="card-title-dot" style="background:var(--blue)"></div>
+      <span style="color:var(--blue)">Responsabilités</span> — Moyenne par question
+    </div>
+    <div class="bar-rows" id="barsResp"></div>
+  </div>
+
+  <div class="chart-card">
+    <div class="card-title">
+      <div class="card-title-dot" style="background:var(--green)"></div>
+      <span style="color:var(--green)">Défis</span> — Moyenne par question
+    </div>
+    <div class="bar-rows" id="barsDefi"></div>
+  </div>
+
+  <!-- CHART.JS RADAR -->
+  <div class="chart-card full">
+    <div class="card-title">
+      <div class="card-title-dot" style="background:var(--teal)"></div>
+      Profil du groupe — Radar (10 questions)
+    </div>
+    <canvas id="radarChart" height="320"></canvas>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer" id="footerBar" style="display:none">
+  <div class="footer-sync">
+    <div class="sync-dot"></div>
+    <span id="lastSync">Données chargées</span>
+  </div>
+  <span>Formation Pratique en Gestion — Module 1</span>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════
+// CONFIGURATION — changez seulement ces valeurs
+// ══════════════════════════════════════════════════════
+const CSV_URL = 'https://sheet.zohopublic.com/sheet/published/pv9kcea6425b01983412799844f2bd3244928?download=csv&sheetname=Données brutes';
+
+const RESP_QUESTIONS = [
+  '1. Définir les gains à atteindre',
+  '2. Organiser le travail',
+  '3. Communiquer / Mobiliser',
+  '4. Mesurer au fur et à mesure',
+  '5. Développer son personnel',
+];
+const DEFI_QUESTIONS = [
+  '1. Exercer son leadership',
+  '2. Organisation optimale',
+  '3. Maîtriser la communication',
+  '4. Travail d\'équipe',
+  '5. Gestion rigoureuse',
+];
+
+// Indices des colonnes (0-based) dans le CSV
+// AR=43, AS=44, AT=45, AU=46, AV=47
+// AW=48, AX=49, AY=50, AZ=51, BA=52
+// BD=55 (date de fin), BJ=61, BK=62, BL=63
+const COL_RESP = [43, 44, 45, 46, 47];
+const COL_DEFI = [48, 49, 50, 51, 52];
+const COL_DATE = 55; // La réponse est terminée
+const COL_GEO_RESP = 61;
+const COL_GEO_DEFI = 62;
+const COL_GEO_GLOB = 63;
+
+// ══════════════════════════════════════════════════════
+let allRows = [];
+let radarChartInstance = null;
+
+// Parse CSV
+function parseCSV(text) {
+  const lines = text.trim().split('\n');
+  if (lines.length < 2) return [];
+  return lines.slice(1).map(line => {
+    const cols = [];
+    let cur = '', inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') { inQ = !inQ; }
+      else if (ch === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
+      else cur += ch;
+    }
+    cols.push(cur.trim());
+    return cols;
+  }).filter(r => {
+    if (r.length < 44) return false;
+    const val = parseFloat(r[43]);
+    return !isNaN(val) && val >= 1 && val <= 10;
+  });
+}
+
+// Get today's date string matching Zoho French format (e.g. "23 févr. 2026")
+function todayStr() {
+  const d = new Date();
+  const months = ['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'];
+  return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+function isSameDay(dateStr) {
+  if (!dateStr) return false;
+  return dateStr.startsWith(todayStr());
+}
+
+function num(val) {
+  const n = parseFloat(String(val).replace(',', '.'));
+  return isNaN(n) ? null : n;
+}
+
+function avg(arr) {
+  const valid = arr.filter(v => v !== null && v > 0);
+  if (!valid.length) return null;
+  return valid.reduce((a,b) => a+b, 0) / valid.length;
+}
+
+function geoMean(vals) {
+  const valid = vals.filter(v => v !== null && v > 0);
+  if (!valid.length) return null;
+  const n = valid.length;
+  let prod = 1;
+  for (const v of valid) prod *= (v / 10);
+  let y = 1;
+  for (let i = 0; i < 40; i++) {
+    let yp = 1;
+    for (let j = 0; j < n-1; j++) yp *= y;
+    y = ((n-1)*y + prod/yp) / n;
+  }
+  return Math.round(y * 1000) / 10;
+}
+
+function pct(val) {
+  if (val === null) return '—';
+  return Math.round(val * 10) / 10 + '%';
+}
+
+function renderBarRows(containerId, questions, avgScores, color) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = '';
+  questions.forEach((q, i) => {
+    const v = avgScores[i];
+    if (v === null) return;
+    const low = v <= 5;
+    const p = (v / 10) * 100;
+    const row = document.createElement('div');
+    row.className = 'bar-row' + (low ? ' low' : '');
+    row.innerHTML = `
+      <div class="bar-qnum">${i+1}.</div>
+      <div class="bar-qname">${q.replace(/^\d+\.\s/,'')}</div>
+      <div class="bar-track">
+        <div class="bar-fill" style="width:0%;background:${low?'#e53e3e':color}" data-pct="${p}"></div>
+      </div>
+      <div class="bar-score" style="color:${low?'#e53e3e':color}">${Math.round(v*10)/10}</div>`;
+    el.appendChild(row);
+  });
+  setTimeout(() => {
+    el.querySelectorAll('.bar-fill').forEach(b => b.style.width = b.dataset.pct + '%');
+  }, 100);
+}
+
+function renderCompare(sections) {
+  const el = document.getElementById('compareRows');
+  el.innerHTML = '';
+  sections.forEach(s => {
+    const diff = s.arith !== null && s.geo !== null ? Math.round((s.arith - s.geo)*10)/10 : null;
+    const row = document.createElement('div');
+    row.className = 'compare-row';
+    row.innerHTML = `
+      <div class="compare-label">
+        <strong>${s.label}</strong>
+        ${diff !== null ? `<span style="color:${diff>0?'#e53e3e':'var(--green)'}">Écart : ${diff > 0 ? '-' : '+'}${Math.abs(diff)}%</span>` : ''}
+      </div>
+      <div class="compare-tracks">
+        <div class="compare-track">
+          <div class="compare-track-label" style="color:${s.color}">Arith.</div>
+          <div class="compare-bar-wrap">
+            <div class="compare-bar" style="width:0%;background:${s.color}" data-pct="${s.arith||0}"></div>
+          </div>
+          <div class="compare-val" style="color:${s.color}">${pct(s.arith)}</div>
+        </div>
+        <div class="compare-track">
+          <div class="compare-track-label" style="color:${s.colorGeo}">Géom.</div>
+          <div class="compare-bar-wrap">
+            <div class="compare-bar" style="width:0%;background:${s.colorGeo}" data-pct="${s.geo||0}"></div>
+          </div>
+          <div class="compare-val" style="color:${s.colorGeo}">${pct(s.geo)}</div>
+        </div>
+      </div>`;
+    el.appendChild(row);
+  });
+  setTimeout(() => {
+    el.querySelectorAll('.compare-bar').forEach(b => b.style.width = b.dataset.pct + '%');
+  }, 150);
+}
+
+function renderRadar(labels, data) {
+  if (radarChartInstance) radarChartInstance.destroy();
+  const ctx = document.getElementById('radarChart').getContext('2d');
+  radarChartInstance = new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Moyenne du groupe',
+        data: data,
+        backgroundColor: 'rgba(0,33,105,0.12)',
+        borderColor: '#002169',
+        borderWidth: 2,
+        pointBackgroundColor: '#ffed00',
+        pointBorderColor: '#002169',
+        pointRadius: 5,
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        r: {
+          min: 0, max: 10,
+          ticks: { stepSize: 2, font: { size: 10 } },
+          grid: { color: 'rgba(0,33,105,0.08)' },
+          pointLabels: { font: { size: 11, family: 'DM Sans' }, color: '#002169' }
+        }
+      },
+      plugins: { legend: { display: false } }
+    }
+  });
+}
+
+function populatePosteFilter() {
+  const sel = document.getElementById('posteFilter');
+  const current = sel.value;
+  // Collect unique postes (col 5)
+  const postes = [...new Set(allRows.map(r => r[5]).filter(p => p && p.trim()))].sort();
+  sel.innerHTML = '<option value="all">Tous les postes</option>';
+  postes.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p; opt.textContent = p;
+    if (p === current) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+function zohoDateToISO(dateStr) {
+  // Convert "11 fevr. 2026, 11 h 36 min 26 s" to "2026-02-11"
+  if (!dateStr) return null;
+  const months = {"janv":"01","fevr":"02","mars":"03","avr":"04","mai":"05","juin":"06","juil":"07","aout":"08","sept":"09","oct":"10","nov":"11","dec":"12"};
+  const clean = dateStr.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+  const m = clean.match(/(\d{1,2})\s+(\w+)\.?\s+(\d{4})/);
+  if (!m) return null;
+  const monthKey = m[2].replace(/\./g,"");
+  const mo = months[monthKey] || "00";
+  return m[3] + "-" + mo + "-" + m[1].padStart(2,"0");
+}
+
+function renderDashboard() {
+  const dateVal = document.getElementById('dateFilter').value;
+  const posteVal = document.getElementById('posteFilter').value;
+
+  let rows = allRows;
+  if (dateVal) {
+    rows = rows.filter(r => zohoDateToISO(r[COL_DATE]) === dateVal);
+  }
+  if (posteVal !== 'all') {
+    rows = rows.filter(r => r[5] === posteVal);
+  }
+
+  document.getElementById('countNum').textContent = rows.length;
+
+  if (rows.length === 0) {
+    document.getElementById('dashboard').style.display = 'none';
+    document.getElementById('filterBar').style.display = 'flex';
+    document.getElementById('footerBar').style.display = 'flex';
+    return;
+  }
+
+  // Calculate averages per question
+  const respAvgs = COL_RESP.map(ci => avg(rows.map(r => num(r[ci]))));
+  const defiAvgs = COL_DEFI.map(ci => avg(rows.map(r => num(r[ci]))));
+
+  // Arithmetic means (%)
+  const respArith = avg(respAvgs.filter(v=>v!==null));
+  const defiArith = avg(defiAvgs.filter(v=>v!==null));
+  const globArith = avg([...respAvgs, ...defiAvgs].filter(v=>v!==null));
+
+  // Geometric means — from BJ/BK/BL columns if available, otherwise calculate
+  let respGeo, defiGeo, globGeo;
+  const bjVals = rows.map(r => num(r[COL_GEO_RESP])).filter(v => v !== null && v > 0);
+  const bkVals = rows.map(r => num(r[COL_GEO_DEFI])).filter(v => v !== null && v > 0);
+  const blVals = rows.map(r => num(r[COL_GEO_GLOB])).filter(v => v !== null && v > 0);
+
+  if (bjVals.length > 0) {
+    respGeo = avg(bjVals);
+    defiGeo = avg(bkVals);
+    globGeo = avg(blVals);
+  } else {
+    // Fallback: calculate from raw scores
+    respGeo = avg(rows.map(r => geoMean(COL_RESP.map(ci => num(r[ci])))).filter(v=>v!==null));
+    defiGeo = avg(rows.map(r => geoMean(COL_DEFI.map(ci => num(r[ci])))).filter(v=>v!==null));
+    globGeo = avg(rows.map(r => geoMean([...COL_RESP,...COL_DEFI].map(ci => num(r[ci])))).filter(v=>v!==null));
+  }
+
+  // Update KPIs
+  const fmt = v => v !== null ? Math.round(v*10)/10 + '%' : '—';
+  document.getElementById('kpiRespArith').textContent = respArith !== null ? Math.round(respArith*10)/10+'%' : '—';
+  document.getElementById('kpiRespGeo').textContent   = fmt(respGeo);
+  document.getElementById('kpiDefiArith').textContent = respArith !== null ? Math.round(defiArith*10)/10+'%' : '—';
+  document.getElementById('kpiDefiGeo').textContent   = fmt(defiGeo);
+  document.getElementById('kpiGlobArith').textContent = globArith !== null ? Math.round(globArith*10)/10+'%' : '—';
+  document.getElementById('kpiGlobGeo').textContent   = fmt(globGeo);
+
+  // Comparison
+  renderCompare([
+    { label: 'Responsabilités', arith: respArith !== null ? Math.round(respArith*10)/10 : null, geo: respGeo !== null ? Math.round(respGeo*10)/10 : null, color: 'var(--blue)', colorGeo: '#1a5a9a' },
+    { label: 'Défis',           arith: defiArith !== null ? Math.round(defiArith*10)/10 : null, geo: defiGeo !== null ? Math.round(defiGeo*10)/10 : null, color: 'var(--green)', colorGeo: '#6a8a15' },
+    { label: 'Global',          arith: globArith !== null ? Math.round(globArith*10)/10 : null, geo: globGeo !== null ? Math.round(globGeo*10)/10 : null, color: 'var(--teal)', colorGeo: '#007a92' },
+  ]);
+
+  // Bar charts
+  renderBarRows('barsResp', RESP_QUESTIONS, respAvgs, 'var(--blue)');
+  renderBarRows('barsDefi', DEFI_QUESTIONS, defiAvgs, 'var(--green)');
+
+  // Radar
+  const allAvgs = [...respAvgs, ...defiAvgs];
+  const radarLabels = [...RESP_QUESTIONS, ...DEFI_QUESTIONS].map(q => q.replace(/^\d+\.\s/,''));
+  renderRadar(radarLabels, allAvgs.map(v => v !== null ? Math.round(v*10)/10 : 0));
+
+  document.getElementById('dashboard').style.display = 'grid';
+  document.getElementById('footerBar').style.display = 'flex';
+  document.getElementById('lastSync').textContent = 'Actualisé à ' + new Date().toLocaleTimeString('fr-CA');
+}
+
+async function loadData() {
+  document.getElementById('loadingState').style.display = 'block';
+  document.getElementById('errorState').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('filterBar').style.display = 'none';
+  document.getElementById('footerBar').style.display = 'none';
+
+  try {
+    const res = await fetch(CSV_URL, { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const text = await res.text();
+    allRows = parseCSV(text);
+    if (allRows.length === 0) throw new Error('No data');
+
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('filterBar').style.display = 'flex';
+    populatePosteFilter();
+    // Default date filter to today
+    const todayISO = new Date().toISOString().split('T')[0];
+    document.getElementById('dateFilter').value = todayISO;
+    renderDashboard();
+  } catch(e) {
+    console.error(e);
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('errorState').style.display = 'block';
+  }
+}
+
+// Init
+document.getElementById('dateBadge').textContent = new Date().toLocaleDateString('fr-CA', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
+loadData();
+</script>
+</body>
+</html>
