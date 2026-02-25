@@ -7,24 +7,24 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-  :root {
-    --ink:         #1a1a2e;
-    --ink-soft:    #3d3d5c;
-    --cream:       #f8f5f0;
-    --cream-dark:  #ede9e3;
-    --gold:        #c9a84c;
-    --gold-light:  #e8c97a;
-    --gold-bg:     #fdf6e3;
-    --blue:        #2d6a8f;
-    --blue-light:  #d6e8f5;
-    --green:       #3a7d5f;
-    --green-light: #d4ede4;
-    --warn:        #b85a2d;
-    --warn-light:  #fae5d9;
+:root {
+    --ink:         #002169;
+    --ink-soft:    #1d71b8;
+    --cream:       #f5f7fa;
+    --cream-dark:  #e8ecf2;
+    --gold:        #ffed00;
+    --gold-light:  #fff176;
+    --gold-bg:     #fffde7;
+    --blue:        #1d71b8;
+    --blue-light:  #d0e4f5;
+    --green:       #95c11f;
+    --green-light: #e8f5c0;
+    --warn:        #0090ac;
+    --warn-light:  #d0eef3;
     --white:       #ffffff;
-    --shadow:      0 4px 28px rgba(26,26,46,0.08);
-    --shadow-lg:   0 10px 48px rgba(26,26,46,0.15);
-  }
+    --shadow:      0 4px 28px rgba(0,33,105,0.10);
+    --shadow-lg:   0 10px 48px rgba(0,33,105,0.18);
+}
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
@@ -176,6 +176,11 @@
 
   .chart-grid { display: grid; grid-template-columns: 3fr 2fr; gap: 24px; }
   @media(max-width:600px){ .chart-grid { grid-template-columns: 1fr; } }
+  .donut-stack { display: flex; flex-direction: column; gap: 20px; align-items: center; }
+  .donut-block-lbl {
+    font-size: 10px; letter-spacing: .12em; text-transform: uppercase;
+    font-weight: 600; color: var(--ink-soft); text-align: center; margin-top: 4px;
+  }
 
   .chart-lbl {
     font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
@@ -295,7 +300,7 @@
       <div class="geo-icon">⬡</div>
       <div class="geo-text">
         <h3>Moyenne géométrique</h3>
-        <p>Contrairement à la moyenne arithmétique, la moyenne géométrique amplifie l'impact de vos scores les plus bas — elle vous maintient responsable même lorsque la majorité de vos réponses sont élevées.</p>
+        <p>Contrairement à la moyenne arithmétique, la moyenne géométrique amplifie l'impact de vos scores les plus bas. Elle vous maintient responsable même lorsque la majorité de vos réponses sont élevées.</p>
       </div>
       <div class="geo-scores">
         <div class="geo-score-block">
@@ -317,7 +322,7 @@
 
     <!-- Charts -->
     <div class="chart-card">
-      <h2 class="card-title">Aperçu visuel</h2>
+      <h2 class="card-title">Scores</h2>
       <p class="card-sub">Comparaison de vos scores par section, avec la moyenne géométrique.</p>
       <div class="chart-grid">
         <div>
@@ -325,13 +330,30 @@
           <canvas id="barChart"></canvas>
         </div>
         <div>
-          <div class="chart-lbl">Score global</div>
-          <div class="donut-wrap">
-            <div class="donut-rel">
-              <canvas id="donutChart" width="150" height="150"></canvas>
-              <div class="donut-center">
-                <span class="big" id="donutNum">–</span>
-                <span class="sm">/ 100</span>
+          <div class="donut-stack">
+            <div>
+              <div class="chart-lbl">Score global</div>
+              <div class="donut-wrap">
+                <div class="donut-rel">
+                  <canvas id="donutChart" width="150" height="150"></canvas>
+                  <div class="donut-center">
+                    <span class="big" id="donutNum" style="color:var(--blue)">–</span>
+                    <span class="sm">%</span>
+                  </div>
+                </div>
+                <div class="donut-block-lbl">Arithmétique</div>
+              </div>
+            </div>
+            <div>
+              <div class="donut-wrap">
+                <div class="donut-rel">
+                  <canvas id="donutGeoChart" width="150" height="150"></canvas>
+                  <div class="donut-center">
+                    <span class="big" id="donutGeoNum" style="color:var(--warn)">–</span>
+                    <span class="sm">%</span>
+                  </div>
+                </div>
+                <div class="donut-block-lbl" style="color:var(--warn)">Géométrique</div>
               </div>
             </div>
           </div>
@@ -380,12 +402,15 @@ const DEFI_Q = [
 // ── URL param parsing ──────────────────────────────────────────────────────
 function params() {
   const p = new URLSearchParams(window.location.search);
+  const prenom  = p.get('Prénom')      || p.get('prenom')  || p.get('name')    || '';
+  const nom     = p.get('Nom')         || p.get('nom')      || '';
+  const fullName = [prenom, nom].filter(Boolean).join(' ');
   return {
-    name:    p.get('name')    || '',
-    email:   p.get('email')   || '',
-    dept:    p.get('dept')    || '',
-    pos:     p.get('pos')     || '',
-    company: p.get('company') || '',
+    name:    fullName || p.get('name') || 'Participant',
+    email:   p.get('E-mail')     || p.get('email')   || '',
+    dept:    p.get('Département') || p.get('dept')    || '',
+    pos:     p.get('Poste')      || p.get('pos')      || '',
+    company: p.get('Pharmacie')  || p.get('company')  || '',
     // Responsabilités: alias order A,D,E,C,B → questions 1,2,3,4,5
     a: +p.get('a'), // Q1 – Définir les gains
     d: +p.get('d'), // Q2 – Organiser
@@ -485,70 +510,119 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('geoResp').textContent    = geoR + ' %';
   document.getElementById('geoDefi').textContent    = geoD + ' %';
   document.getElementById('geoTotal').textContent   = geoG + ' %';
-  document.getElementById('donutNum').textContent   = total;
+  document.getElementById('donutNum').textContent   = totPct;
 
   // Bars
   renderBars('respBars', RESP_Q, respVals, 'var(--blue)');
   renderBars('defiBars', DEFI_Q, defiVals, 'var(--gold)');
 
-  // Bar chart
+  // Bar chart — grouped (Arith. plein / Géom. transparent) par section
   const barCtx = document.getElementById('barChart').getContext('2d');
   new Chart(barCtx, {
     type: 'bar',
     data: {
-      labels: ['Responsabilités', 'Défis', 'Géom. Resp.', 'Géom. Défis', 'Géom. Global'],
-      datasets: [{
-        data: [respPct, defiPct, geoR, geoD, geoG],
-        backgroundColor: [
-          'rgba(45,106,143,0.82)',
-          'rgba(201,168,76,0.82)',
-          'rgba(45,106,143,0.42)',
-          'rgba(201,168,76,0.42)',
-          'rgba(26,26,46,0.65)',
-        ],
-        borderRadius: 6,
-        borderSkipped: false,
-      }]
+      labels: ['Responsabilités', 'Défis', 'Global'],
+      datasets: [
+        {
+          label: 'Arithmétique',
+          data: [respPct, defiPct, totPct],
+          backgroundColor: ['rgba(29,113,184,0.88)', 'rgba(149,193,31,0.88)', 'rgba(0,144,172,0.88)'],
+          borderRadius: 5,
+          borderSkipped: false,
+        },
+        {
+          label: 'Géométrique',
+          data: [geoR, geoD, geoG],
+          backgroundColor: ['rgba(29,113,184,0.38)', 'rgba(149,193,31,0.38)', 'rgba(0,144,172,0.38)'],
+          borderRadius: 5,
+          borderSkipped: false,
+        }
+      ]
     },
     options: {
       responsive: true,
       plugins: {
-        legend: { display: false },
-        tooltip: { callbacks: { label: ctx => ` ${ctx.raw} %` } }
+        legend: {
+          display: true, position: 'bottom',
+          labels: {
+            font: { family: 'DM Sans', size: 10 }, boxWidth: 12, padding: 12,
+            generateLabels: function(chart) {
+              return [
+                { text: 'Arithmétique', fillStyle: 'rgba(29,113,184,0.88)',  strokeStyle: 'transparent', lineWidth: 0 },
+                { text: 'Géométrique',  fillStyle: 'rgba(29,113,184,0.38)',  strokeStyle: 'transparent', lineWidth: 0 },
+              ];
+            }
+          }
+        },
+        tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.raw}%` } },
+        datalabels: false,
       },
       scales: {
         y: {
-          min: 0, max: 100,
-          ticks: { callback: v => v + '%', font: { family: 'DM Sans', size: 10 }, color: '#3d3d5c' },
+          min: 0, max: 115,
+          ticks: { callback: v => v <= 100 ? v + '%' : '', font: { family: 'DM Sans', size: 10 }, color: '#3d3d5c' },
           grid: { color: 'rgba(0,0,0,0.05)' }
         },
         x: {
           ticks: { font: { family: 'DM Sans', size: 10 }, color: '#3d3d5c' },
           grid: { display: false }
         }
+      },
+      animation: {
+        onComplete: function() {
+          const chart = this;
+          const ctx = chart.ctx;
+          ctx.font = 'bold 10px DM Sans';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'bottom';
+          chart.data.datasets.forEach((dataset, di) => {
+            const meta = chart.getDatasetMeta(di);
+            meta.data.forEach((bar, i) => {
+              const val = dataset.data[i];
+              if (val == null) return;
+              ctx.fillStyle = di === 0 ? '#002169' : '#4a5a8a';
+              ctx.fillText(val + '%', bar.x, bar.y - 4);
+            });
+          });
+        }
       }
     }
   });
 
-  // Donut
-  const dColor = total >= 80 ? 'rgba(58,125,95,0.85)'
-               : total >= 60 ? 'rgba(45,106,143,0.85)'
-               :               'rgba(184,90,45,0.85)';
+  // Donut arithmétique
   const dCtx = document.getElementById('donutChart').getContext('2d');
   new Chart(dCtx, {
     type: 'doughnut',
     data: {
       datasets: [{
-        data: [total, 100 - total],
-        backgroundColor: [dColor, 'rgba(237,233,227,0.6)'],
+        data: [totPct, 100 - totPct],
+        backgroundColor: ['rgba(29,113,184,0.88)', 'rgba(232,236,242,0.7)'],
         borderWidth: 0,
       }]
     },
     options: {
-      responsive: false,
-      cutout: '72%',
+      responsive: false, cutout: '72%',
       plugins: { legend: { display: false }, tooltip: { enabled: false } },
       animation: { animateRotate: true, duration: 1200, easing: 'easeOutQuart' }
+    }
+  });
+
+  // Donut géométrique
+  document.getElementById('donutGeoNum').textContent = geoG;
+  const dGeoCtx = document.getElementById('donutGeoChart').getContext('2d');
+  new Chart(dGeoCtx, {
+    type: 'doughnut',
+    data: {
+      datasets: [{
+        data: [geoG, 100 - geoG],
+        backgroundColor: ['rgba(0,144,172,0.88)', 'rgba(232,236,242,0.7)'],
+        borderWidth: 0,
+      }]
+    },
+    options: {
+      responsive: false, cutout: '72%',
+      plugins: { legend: { display: false }, tooltip: { enabled: false } },
+      animation: { animateRotate: true, duration: 1400, easing: 'easeOutQuart' }
     }
   });
 });
