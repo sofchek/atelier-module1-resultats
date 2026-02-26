@@ -412,7 +412,7 @@ body::before {
 </div>
 
 <script>
-const CSV_URL = 'https://corsproxy.io/?url=' + encodeURIComponent('https://sheet.zohopublic.com/sheet/published/pv9kcea6425b01983412799844f2bd3244928?download=csv&sheetname=Feuille1');
+const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQYYRda3ViW1ibZtUDwlDxfDmXAcI56bPBlBn4V87WMc3EGGaVnD1_m49V3feWNugEDpwAW67tOy0aM/pub?gid=1084043110&single=true&output=csv';
 
 const RESP_QUESTIONS = [
   '1. Définir les gains à atteindre',
@@ -695,7 +695,7 @@ async function loadData() {
   document.getElementById('footerBar').style.display = 'none';
 
   try {
-    const bustUrl = CSV_URL + '&_t=' + Date.now();
+    const bustUrl = CSV_URL + '&_t=' + Date.now(); // cache busting
     const res = await fetch(bustUrl, { cache: 'no-store' });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const text = await res.text();
