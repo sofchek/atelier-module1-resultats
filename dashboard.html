@@ -394,23 +394,11 @@ body::before {
 </div>
 
 <script>
-// 1. New .ca Zoho URL
+// CONFIGURATION
 const BASE_ZOHO_URL = 'https://sheet.zohopublic.ca/sheet/publishedsheet/8c94a1f7fca85b99fae62b8c8f2d10b5ab1615f758ecae6728a23b9c8dbeb732?type=grid&download=csv';
 
-const RESP_QUESTIONS = [
-  '1. Définir les gains à atteindre',
-  '2. Organiser le travail',
-  '3. Communiquer / Mobiliser',
-  '4. Mesurer au fur et à mesure',
-  '5. Développer son personnel',
-];
-const DEFI_QUESTIONS = [
-  '1. Exercer son leadership',
-  '2. Organisation optimale',
-  '3. Maîtriser la communication',
-  '4. Travail d\'équipe',
-  '5. Gestion rigoureuse',
-];
+const RESP_QUESTIONS = ['1. Définir les gains à atteindre','2. Organiser le travail','3. Communiquer / Mobiliser','4. Mesurer au fur et à mesure','5. Développer son personnel'];
+const DEFI_QUESTIONS = ['1. Exercer son leadership','2. Organisation optimale','3. Maîtriser la communication','4. Travail d\'équipe','5. Gestion rigoureuse'];
 
 const COL_RESP = [43, 44, 45, 46, 47];
 const COL_DEFI = [48, 49, 50, 51, 52];
@@ -421,6 +409,8 @@ const COL_GEO_DEFI = 62;
 const COL_GEO_GLOB = 63;
 
 let allRows = [];
+
+// ── FONCTIONS DE PARSAGE ──
 
 function parseCSV(text) {
   const lines = text.trim().split('\n');
@@ -436,13 +426,13 @@ function parseCSV(text) {
     }
     cols.push(cur.trim());
     return cols;
-  }).filter(r => {
-    if (r.length < 44) return false;
-    const val = parseFloat(r[43]);
-    return !isNaN(val) && val >= 1 && val <= 10;
-  });
+  }).filter(r => r.length > 50);
 }
 
+/**
+ * Convertit "02 mars 2026, 14 h 30" -> "2026-03-02"
+ * Adapté au Eastern Time (Montréal)
+ */
 function zohoDateToISO(dateStr) {
   if (!dateStr) return null;
   const months = {
@@ -450,25 +440,23 @@ function zohoDateToISO(dateStr) {
     'mai':  '05', 'juin': '06', 'juil': '07', 'aout': '08',
     'sept': '09', 'oct':  '10', 'nov':  '11', 'dec':  '12'
   };
+  
+  // Nettoyage : enlever accents et mettre en minuscule
   const clean = dateStr.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-  const m = clean.match(/(\d{1,2})\s+(\w+)\.?\s+(\d{4})/);
+  
+  // Regex pour capturer Jour, Mois, Année
+  const m = clean.match(/(\d{1,2})\s+([a-z]+)\.?\s+(\d{4})/);
   if (!m) return null;
-  const mo = months[m[2].replace(/\./g, '')] || '00';
-  return m[3] + '-' + mo + '-' + m[1].padStart(2, '0');
+  
+  const day = m[1].padStart(2, '0');
+  const monthKey = m[2].substring(0, 4); // Prend les 4 premières lettres pour correspondre au dictionnaire
+  const month = months[monthKey] || '01';
+  const year = m[3];
+  
+  return `${year}-${month}-${day}`;
 }
 
-function populatePosteFilter() {
-  const sel = document.getElementById('posteFilter');
-  const current = sel.value;
-  const postes = [...new Set(allRows.map(r => r[COL_POSTE]).filter(p => p && p.trim()))].sort();
-  sel.innerHTML = '<option value="all">Tous les postes</option>';
-  postes.forEach(p => {
-    const opt = document.createElement('option');
-    opt.value = p; opt.textContent = p;
-    if (p === current) opt.selected = true;
-    sel.appendChild(opt);
-  });
-}
+// ── FONCTIONS DE CALCUL ──
 
 function num(val) {
   const n = parseFloat(String(val).replace(',', '.'));
@@ -477,8 +465,7 @@ function num(val) {
 
 function avg(arr) {
   const valid = arr.filter(v => v !== null && v > 0);
-  if (!valid.length) return null;
-  return valid.reduce((a, b) => a + b, 0) / valid.length;
+  return valid.length ? valid.reduce((a, b) => a + b, 0) / valid.length : null;
 }
 
 function geoMean(vals) {
@@ -496,9 +483,19 @@ function geoMean(vals) {
   return Math.round(y * 1000) / 10;
 }
 
-function pct(val) {
-  if (val === null) return '—';
-  return Math.round(val * 10) / 10 + '%';
+// ── UI RENDERING ──
+
+function populatePosteFilter() {
+  const sel = document.getElementById('posteFilter');
+  const current = sel.value;
+  const postes = [...new Set(allRows.map(r => r[COL_POSTE]).filter(p => p && p.trim()))].sort();
+  sel.innerHTML = '<option value="all">Tous les postes</option>';
+  postes.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p; opt.textContent = p;
+    if (p === current) opt.selected = true;
+    sel.appendChild(opt);
+  });
 }
 
 function renderBarRows(containerId, questions, avgScores, color) {
@@ -514,65 +511,42 @@ function renderBarRows(containerId, questions, avgScores, color) {
     row.innerHTML = `
       <div class="bar-qnum">${i + 1}.</div>
       <div class="bar-qname">${q.replace(/^\d+\.\s/, '')}</div>
-      <div class="bar-track">
-        <div class="bar-fill" style="width:0%;background:${low ? '#e53e3e' : color}" data-pct="${p}"></div>
-      </div>
+      <div class="bar-track"><div class="bar-fill" style="width:0%;background:${low ? '#e53e3e' : color}" data-pct="${p}"></div></div>
       <div class="bar-score" style="color:${low ? '#e53e3e' : color}">${Math.round(v * 10) / 10}</div>`;
     el.appendChild(row);
   });
-  setTimeout(() => {
-    el.querySelectorAll('.bar-fill').forEach(b => b.style.width = b.dataset.pct + '%');
-  }, 100);
+  setTimeout(() => el.querySelectorAll('.bar-fill').forEach(b => b.style.width = b.dataset.pct + '%'), 100);
 }
 
 function renderCompare(sections) {
   const el = document.getElementById('compareRows');
   el.innerHTML = '';
   sections.forEach(s => {
-    const diff = s.arith !== null && s.geo !== null ? Math.round((s.arith - s.geo) * 10) / 10 : null;
-    const diffPositive = diff !== null && diff > 0;
-    const badgeStyle = diffPositive
-      ? 'background:#fde8e8;color:#c53030'
-      : 'background:#e8f5c0;color:#5a7a10';
+    const diff = (s.arith !== null && s.geo !== null) ? Math.round((s.arith - s.geo) * 10) / 10 : null;
+    const badgeStyle = (diff !== null && diff > 0) ? 'background:#fde8e8;color:#c53030' : 'background:#e8f5c0;color:#5a7a10';
     const row = document.createElement('div');
     row.className = 'compare-row';
     row.innerHTML = `
-      <div class="compare-label">
-        <strong>${s.label}</strong>
-        ${diff !== null ? `<span class="ecart-badge" style="${badgeStyle}">Écart : ${diffPositive ? '-' : '+'}${Math.abs(diff)}%</span>` : ''}
-      </div>
+      <div class="compare-label"><strong>${s.label}</strong>${diff !== null ? `<span class="ecart-badge" style="${badgeStyle}">Écart : ${diff > 0 ? '-' : '+'}${Math.abs(diff)}%</span>` : ''}</div>
       <div class="compare-tracks">
-        <div class="compare-track">
-          <div class="compare-track-label" style="color:${s.color}">Arith.</div>
-          <div class="compare-bar-wrap">
-            <div class="compare-bar" style="width:0%;background:${s.color}" data-pct="${s.arith || 0}">
-              <span class="compare-bar-val">${pct(s.arith)}</span>
-            </div>
-          </div>
-        </div>
-        <div class="compare-track">
-          <div class="compare-track-label" style="color:${s.colorGeo}">Géom.</div>
-          <div class="compare-bar-wrap">
-            <div class="compare-bar" style="width:0%;background:${s.colorGeo}" data-pct="${s.geo || 0}">
-              <span class="compare-bar-val">${pct(s.geo)}</span>
-            </div>
-          </div>
-        </div>
+        <div class="compare-track"><div class="compare-track-label" style="color:${s.color}">Arith.</div><div class="compare-bar-wrap"><div class="compare-bar" style="width:0%;background:${s.color}" data-pct="${s.arith || 0}"><span class="compare-bar-val">${Math.round(s.arith * 10) / 10}%</span></div></div></div>
+        <div class="compare-track"><div class="compare-track-label" style="color:${s.colorGeo}">Géom.</div><div class="compare-bar-wrap"><div class="compare-bar" style="width:0%;background:${s.colorGeo}" data-pct="${s.geo || 0}"><span class="compare-bar-val">${Math.round(s.geo * 10) / 10}%</span></div></div></div>
       </div>`;
     el.appendChild(row);
   });
-  setTimeout(() => {
-    el.querySelectorAll('.compare-bar').forEach(b => b.style.width = b.dataset.pct + '%');
-  }, 150);
+  setTimeout(() => el.querySelectorAll('.compare-bar').forEach(b => b.style.width = b.dataset.pct + '%'), 150);
 }
 
 function renderDashboard() {
   const dateVal = document.getElementById('dateFilter').value;
   const posteVal = document.getElementById('posteFilter').value;
 
-  let rows = allRows;
-  if (dateVal) rows = rows.filter(r => zohoDateToISO(r[COL_DATE]) === dateVal);
-  if (posteVal !== 'all') rows = rows.filter(r => r[COL_POSTE] === posteVal);
+  let rows = allRows.filter(r => {
+    const isoDate = zohoDateToISO(r[COL_DATE]);
+    const matchesDate = !dateVal || isoDate === dateVal;
+    const matchesPoste = posteVal === 'all' || r[COL_POSTE] === posteVal;
+    return matchesDate && matchesPoste;
+  });
 
   document.getElementById('countNum').textContent = rows.length;
 
@@ -586,40 +560,26 @@ function renderDashboard() {
   const respAvgs = COL_RESP.map(ci => avg(rows.map(r => num(r[ci]))));
   const defiAvgs = COL_DEFI.map(ci => avg(rows.map(r => num(r[ci]))));
 
-  const respArith = avg(respAvgs.filter(v => v !== null));
-  const defiArith = avg(defiAvgs.filter(v => v !== null));
-  const globArith = avg([...respAvgs, ...defiAvgs].filter(v => v !== null));
-  const respArithPct = respArith !== null ? respArith * 10 : null;
-  const defiArithPct = defiArith !== null ? defiArith * 10 : null;
-  const globArithPct = globArith !== null ? globArith * 10 : null;
+  const respArithPct = avg(respAvgs.filter(v => v !== null)) * 10;
+  const defiArithPct = avg(defiAvgs.filter(v => v !== null)) * 10;
+  const globArithPct = avg([...respAvgs, ...defiAvgs].filter(v => v !== null)) * 10;
 
-  let respGeo, defiGeo, globGeo;
-  const bjVals = rows.map(r => num(r[COL_GEO_RESP])).filter(v => v !== null && v > 0);
-  const bkVals = rows.map(r => num(r[COL_GEO_DEFI])).filter(v => v !== null && v > 0);
-  const blVals = rows.map(r => num(r[COL_GEO_GLOB])).filter(v => v !== null && v > 0);
-
-  if (bjVals.length > 0) {
-    respGeo = avg(bjVals);
-    defiGeo = avg(bkVals);
-    globGeo = avg(blVals);
-  } else {
-    respGeo = avg(rows.map(r => geoMean(COL_RESP.map(ci => num(r[ci])))).filter(v => v !== null));
-    defiGeo = avg(rows.map(r => geoMean(COL_DEFI.map(ci => num(r[ci])))).filter(v => v !== null));
-    globGeo = avg(rows.map(r => geoMean([...COL_RESP, ...COL_DEFI].map(ci => num(r[ci])))).filter(v => v !== null));
-  }
+  const respGeo = avg(rows.map(r => geoMean(COL_RESP.map(ci => num(r[ci])))));
+  const defiGeo = avg(rows.map(r => geoMean(COL_DEFI.map(ci => num(r[ci])))));
+  const globGeo = avg(rows.map(r => geoMean([...COL_RESP, ...COL_DEFI].map(ci => num(r[ci])))));
 
   const fmt = v => v !== null ? Math.round(v * 10) / 10 + '%' : '—';
-  document.getElementById('kpiRespArith').textContent = respArithPct !== null ? Math.round(respArithPct * 10) / 10 + '%' : '—';
+  document.getElementById('kpiRespArith').textContent = fmt(respArithPct);
   document.getElementById('kpiRespGeo').textContent = fmt(respGeo);
-  document.getElementById('kpiDefiArith').textContent = defiArithPct !== null ? Math.round(defiArithPct * 10) / 10 + '%' : '—';
+  document.getElementById('kpiDefiArith').textContent = fmt(defiArithPct);
   document.getElementById('kpiDefiGeo').textContent = fmt(defiGeo);
-  document.getElementById('kpiGlobArith').textContent = globArithPct !== null ? Math.round(globArithPct * 10) / 10 + '%' : '—';
+  document.getElementById('kpiGlobArith').textContent = fmt(globArithPct);
   document.getElementById('kpiGlobGeo').textContent = fmt(globGeo);
 
   renderCompare([
-    { label: 'Responsabilités', arith: respArithPct !== null ? Math.round(respArithPct * 10) / 10 : null, geo: respGeo !== null ? Math.round(respGeo * 10) / 10 : null, color: 'var(--blue)', colorGeo: '#1a5a9a' },
-    { label: 'Défis', arith: defiArithPct !== null ? Math.round(defiArithPct * 10) / 10 : null, geo: defiGeo !== null ? Math.round(defiGeo * 10) / 10 : null, color: 'var(--green)', colorGeo: '#6a8a15' },
-    { label: 'Global', arith: globArithPct !== null ? Math.round(globArithPct * 10) / 10 : null, geo: globGeo !== null ? Math.round(globGeo * 10) / 10 : null, color: 'var(--teal)', colorGeo: '#007a92' },
+    { label: 'Responsabilités', arith: respArithPct, geo: respGeo, color: 'var(--blue)', colorGeo: '#1a5a9a' },
+    { label: 'Défis', arith: defiArithPct, geo: defiGeo, color: 'var(--green)', colorGeo: '#6a8a15' },
+    { label: 'Global', arith: globArithPct, geo: globGeo, color: 'var(--teal)', colorGeo: '#007a92' },
   ]);
 
   renderBarRows('barsResp', RESP_QUESTIONS, respAvgs, 'var(--blue)');
@@ -630,39 +590,30 @@ function renderDashboard() {
   document.getElementById('lastSync').textContent = 'Actualisé à ' + new Date().toLocaleTimeString('fr-CA');
 }
 
-// 2. Updated Refresh Logic for .ca domain and cache control
+// ── DATA LOADING ──
+
 async function loadData() {
   document.getElementById('loadingState').style.display = 'block';
   document.getElementById('errorState').style.display = 'none';
   document.getElementById('dashboard').style.display = 'none';
   document.getElementById('filterBar').style.display = 'none';
-  document.getElementById('footerBar').style.display = 'none';
 
   try {
     const finalUrl = 'https://corsproxy.io/?url=' + encodeURIComponent(BASE_ZOHO_URL + '&t=' + Date.now());
-    
-    const res = await fetch(finalUrl, { 
-        method: 'GET',
-        cache: 'no-store', 
-        headers: {
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache'
-        }
-    });
-
-    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const res = await fetch(finalUrl, { cache: 'no-store' });
+    if (!res.ok) throw new Error('Erreur HTTP');
     const text = await res.text();
     allRows = parseCSV(text);
     
-    if (allRows.length === 0) throw new Error('No data');
+    if (allRows.length === 0) throw new Error('Aucune donnée');
 
     document.getElementById('loadingState').style.display = 'none';
     document.getElementById('filterBar').style.display = 'flex';
     populatePosteFilter();
     
-    const now = new Date();
-    const todayISO = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
-    document.getElementById('dateFilter').value = todayISO;
+    // Détection de la date d'aujourd'hui (Eastern Time)
+    const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+    document.getElementById('dateFilter').value = today;
     
     renderDashboard();
   } catch (e) {
@@ -672,7 +623,8 @@ async function loadData() {
   }
 }
 
-document.getElementById('dateBadge').textContent = new Date().toLocaleDateString('fr-CA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+// Initialisation
+document.getElementById('dateBadge').textContent = new Date().toLocaleDateString('fr-CA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'America/New_York' });
 loadData();
 </script>
 </body>
