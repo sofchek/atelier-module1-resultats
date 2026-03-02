@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Tableau de bord  Stem </title>
+<title>Tableau de bord Stem </title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
@@ -369,7 +369,7 @@ body::before {
   <div class="chart-card full">
     <div class="card-title">
       <div class="card-title-dot" style="background:var(--navy)"></div>
-      Arithmétique vs Géométrique
+      Arithmétique vs Géométrique — par section
     </div>
     <div class="compare-rows" id="compareRows"></div>
   </div>
@@ -378,7 +378,7 @@ body::before {
   <div class="chart-card">
     <div class="card-title">
       <div class="card-title-dot" style="background:var(--blue)"></div>
-      <span style="color:var(--blue)">Responsabilités</span> - Moyenne par question
+      <span style="color:var(--blue)">Responsabilités</span> — Moyenne par question
     </div>
     <div class="bar-rows" id="barsResp"></div>
   </div>
@@ -386,12 +386,19 @@ body::before {
   <div class="chart-card">
     <div class="card-title">
       <div class="card-title-dot" style="background:var(--green)"></div>
-      <span style="color:var(--green)">Défis</span> - Moyenne par question
+      <span style="color:var(--green)">Défis</span> — Moyenne par question
     </div>
     <div class="bar-rows" id="barsDefi"></div>
   </div>
 
-
+  <!-- CHART.JS RADAR -->
+  <div class="chart-card full">
+    <div class="card-title">
+      <div class="card-title-dot" style="background:var(--teal)"></div>
+      Profil du groupe — Radar (10 questions)
+    </div>
+    <canvas id="radarChart" height="320"></canvas>
+  </div>
 
 </div>
 
@@ -401,11 +408,11 @@ body::before {
     <div class="sync-dot"></div>
     <span id="lastSync">Données chargées</span>
   </div>
-  <span>Formation Pratique en Gestion - Module 1</span>
+  <span>Formation Pratique en Gestion — Module 1</span>
 </div>
 
 <script>
-const CSV_URL = 'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://sheet.zohopublic.com/sheet/published/pv9kcea6425b01983412799844f2bd3244928?download=csv&sheetname=Feuille1');
+const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQYYRda3ViW1ibZtUDwlDxfDmXAcI56bPBlBn4V87WMc3EGGaVnD1_m49V3feWNugEDpwAW67tOy0aM/pub?gid=1084043110&single=true&output=csv';
 
 const RESP_QUESTIONS = [
   '1. Définir les gains à atteindre',
@@ -431,7 +438,7 @@ const COL_GEO_DEFI = 62;
 const COL_GEO_GLOB = 63;
 
 let allRows = [];
-
+let radarChartInstance = null;
 
 function parseCSV(text) {
   const lines = text.trim().split('\n');
@@ -578,7 +585,38 @@ function renderCompare(sections) {
   }, 150);
 }
 
-
+function renderRadar(labels, data) {
+  if (radarChartInstance) radarChartInstance.destroy();
+  const ctx = document.getElementById('radarChart').getContext('2d');
+  radarChartInstance = new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Moyenne du groupe',
+        data: data,
+        backgroundColor: 'rgba(0,33,105,0.12)',
+        borderColor: '#002169',
+        borderWidth: 2,
+        pointBackgroundColor: '#ffed00',
+        pointBorderColor: '#002169',
+        pointRadius: 5,
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        r: {
+          min: 0, max: 10,
+          ticks: { stepSize: 2, font: { size: 10 } },
+          grid: { color: 'rgba(0,33,105,0.08)' },
+          pointLabels: { font: { size: 11, family: 'DM Sans' }, color: '#002169' }
+        }
+      },
+      plugins: { legend: { display: false } }
+    }
+  });
+}
 
 function renderDashboard() {
   const dateVal = document.getElementById('dateFilter').value;
@@ -640,7 +678,9 @@ function renderDashboard() {
   renderBarRows('barsResp', RESP_QUESTIONS, respAvgs, 'var(--blue)');
   renderBarRows('barsDefi', DEFI_QUESTIONS, defiAvgs, 'var(--green)');
 
-
+  const allAvgs = [...respAvgs, ...defiAvgs];
+  const radarLabels = [...RESP_QUESTIONS, ...DEFI_QUESTIONS].map(q => q.replace(/^\d+\.\s/, ''));
+  renderRadar(radarLabels, allAvgs.map(v => v !== null ? Math.round(v * 10) / 10 : 0));
 
   document.getElementById('dashboard').style.display = 'grid';
   document.getElementById('footerBar').style.display = 'flex';
@@ -655,7 +695,7 @@ async function loadData() {
   document.getElementById('footerBar').style.display = 'none';
 
   try {
-    const bustUrl = CSV_URL + '&_t=' + Date.now();
+    const bustUrl = CSV_URL + '&_t=' + Date.now(); // cache busting
     const res = await fetch(bustUrl, { cache: 'no-store' });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const text = await res.text();
