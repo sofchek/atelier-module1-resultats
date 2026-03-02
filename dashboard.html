@@ -705,7 +705,8 @@ async function loadData() {
     document.getElementById('loadingState').style.display = 'none';
     document.getElementById('filterBar').style.display = 'flex';
     populatePosteFilter();
-    const todayISO = new Date().toISOString().split('T')[0];
+    const now = new Date();
+    const todayISO = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
     document.getElementById('dateFilter').value = todayISO;
     renderDashboard();
   } catch (e) {
