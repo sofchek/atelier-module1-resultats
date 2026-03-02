@@ -859,7 +859,7 @@ function renderRadar(labels, data) {
   });
 }
 
-function renderDashboard(cols) {
+function _renderDashboardInternal(cols) {
   const dateVal = qs('#dateFilter').value;
   const posteVal = qs('#posteFilter').value;
 
@@ -1021,7 +1021,7 @@ async function _loadData({ silent=false }={}) {
       qs('#posteFilter').value = prevPoste;
     }
 
-    renderDashboard(cols);
+    _renderDashboardInternal(cols);
 
     qs('#loadingState').style.display = 'none';
     qs('#errorState').style.display = 'none';
@@ -1064,7 +1064,7 @@ function manualRefresh() {
 }
 
 window.loadData = manualRefresh;
-window.renderDashboard = () => headerMap && renderDashboard(headerMap);
+window.renderDashboard = () => headerMap && _renderDashboardInternal(headerMap);
 
 /* INIT */
 qs('#dateBadge').textContent = new Date().toLocaleDateString('fr-CA', {
