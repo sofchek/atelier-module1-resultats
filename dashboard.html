@@ -412,7 +412,24 @@ body::before {
 </div>
 
 <script>
-const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQYYRda3ViW1ibZtUDwlDxfDmXAcI56bPBlBn4V87WMc3EGGaVnD1_m49V3feWNugEDpwAW67tOy0aM/pub?gid=1485612999&single=true&output=csv';
+const ZOHO_CSV = 'https://sheet.zohopublic.com/sheet/published/pv9kcea6425b01983412799844f2bd3244928?download=csv&sheetname=Feuille1';
+const PROXIES = [
+  url => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url),
+  url => 'https://corsproxy.io/?url=' + encodeURIComponent(url),
+  url => 'https://thingproxy.freeboard.io/fetch/' + url,
+];
+
+async function fetchCSV() {
+  for (const proxy of PROXIES) {
+    try {
+      const res = await fetch(proxy(ZOHO_CSV) + '&_t=' + Date.now(), { cache: 'no-store' });
+      if (!res.ok) continue;
+      const text = await res.text();
+      if (text && text.length > 100) return text;
+    } catch(e) { continue; }
+  }
+  throw new Error('Aucun proxy disponible.');
+}
 
 const RESP_QUESTIONS = [
   '1. Définir les gains à atteindre',
@@ -695,18 +712,15 @@ async function loadData() {
   document.getElementById('footerBar').style.display = 'none';
 
   try {
-    const bustUrl = CSV_URL + '&_t=' + Date.now(); // cache busting
-    const res = await fetch(bustUrl, { cache: 'no-store' });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const text = await res.text();
+    const text = await fetchCSV();
     allRows = parseCSV(text);
     if (allRows.length === 0) throw new Error('No data');
 
     document.getElementById('loadingState').style.display = 'none';
     document.getElementById('filterBar').style.display = 'flex';
     populatePosteFilter();
-    const now = new Date();
-    const todayISO = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
+    const _now = new Date();
+    const todayISO = _now.getFullYear() + '-' + String(_now.getMonth()+1).padStart(2,'0') + '-' + String(_now.getDate()).padStart(2,'0');
     document.getElementById('dateFilter').value = todayISO;
     renderDashboard();
   } catch (e) {
