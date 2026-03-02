@@ -3,7 +3,10 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Tableau de bord Stem </title>
+<title>Tableau de bord  Stem </title>
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0"/>
+<meta http-equiv="Pragma" content="no-cache"/>
+<meta http-equiv="Expires" content="0"/>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
@@ -216,12 +219,10 @@ body::before {
 
 /* ── Comparison chart ── */
 .compare-rows { display: flex; flex-direction: column; gap: 20px; }
-.compare-row { }
 .compare-label {
   font-size: 12px; font-weight: 700; color: var(--text); margin-bottom: 8px;
   display: flex; justify-content: space-between; align-items: center;
 }
-.compare-label strong { color: var(--text); }
 .ecart-badge {
   font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px;
 }
@@ -247,14 +248,6 @@ body::before {
 }
 .footer-sync { display: flex; align-items: center; gap: 6px; }
 .sync-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
-
-/* ── Animations ── */
-.main > * { opacity: 0; transform: translateY(16px); animation: fadeUp 0.5s ease forwards; }
-.main > *:nth-child(1) { animation-delay: 0.1s; }
-.main > *:nth-child(2) { animation-delay: 0.2s; }
-.main > *:nth-child(3) { animation-delay: 0.3s; }
-.main > *:nth-child(4) { animation-delay: 0.4s; }
-@keyframes fadeUp { to { opacity: 1; transform: none; } }
 </style>
 </head>
 <body>
@@ -264,8 +257,8 @@ body::before {
   <div class="header-inner">
     <div class="header-title">Tableau de bord <span>Stem</span></div>
     <div class="header-meta">
-      <div class="date-badge" id="dateBadge">-</div>
-      <button class="refresh-btn" onclick="loadData()">↻ Actualiser</button>
+      <div class="date-badge" id="dateBadge">—</div>
+      <button class="refresh-btn" onclick="loadData(false)">↻ Actualiser</button>
     </div>
   </div>
 </div>
@@ -279,8 +272,8 @@ body::before {
 <!-- ERROR STATE -->
 <div class="state-msg" id="errorState" style="display:none">
   <p style="font-size:24px;margin-bottom:12px">⚠️</p>
-  <p>Impossible de charger les données.<br>Vérifiez que le lien Zoho Sheet est accessible et réessayez.</p>
-  <button class="refresh-btn" style="margin-top:20px" onclick="loadData()">Réessayer</button>
+  <p>Impossible de charger les données.<br>Vérifiez que le lien Google Sheet (CSV) est accessible et réessayez.</p>
+  <button class="refresh-btn" style="margin-top:20px" onclick="loadData(false)">Réessayer</button>
 </div>
 
 <!-- FILTER BAR -->
@@ -310,7 +303,7 @@ body::before {
       <div class="kpi-label">Responsabilités</div>
       <div class="kpi-row">
         <div class="kpi-block">
-          <div class="kpi-num" id="kpiRespArith">-</div>
+          <div class="kpi-num" id="kpiRespArith">—</div>
           <div class="kpi-sub">Moy. arithmétique %</div>
         </div>
         <div class="kpi-vs">
@@ -320,7 +313,7 @@ body::before {
         </div>
         <div class="kpi-block">
           <div class="geo-badge">Géom.</div>
-          <div class="kpi-num" id="kpiRespGeo">-</div>
+          <div class="kpi-num" id="kpiRespGeo">—</div>
           <div class="kpi-sub">Moy. géométrique %</div>
         </div>
       </div>
@@ -329,7 +322,7 @@ body::before {
       <div class="kpi-label">Défis</div>
       <div class="kpi-row">
         <div class="kpi-block">
-          <div class="kpi-num" id="kpiDefiArith">-</div>
+          <div class="kpi-num" id="kpiDefiArith">—</div>
           <div class="kpi-sub">Moy. arithmétique %</div>
         </div>
         <div class="kpi-vs">
@@ -339,7 +332,7 @@ body::before {
         </div>
         <div class="kpi-block">
           <div class="geo-badge">Géom.</div>
-          <div class="kpi-num" id="kpiDefiGeo">-</div>
+          <div class="kpi-num" id="kpiDefiGeo">—</div>
           <div class="kpi-sub">Moy. géométrique %</div>
         </div>
       </div>
@@ -348,7 +341,7 @@ body::before {
       <div class="kpi-label">Global</div>
       <div class="kpi-row">
         <div class="kpi-block">
-          <div class="kpi-num" id="kpiGlobArith">-</div>
+          <div class="kpi-num" id="kpiGlobArith">—</div>
           <div class="kpi-sub">Moy. arithmétique %</div>
         </div>
         <div class="kpi-vs">
@@ -358,7 +351,7 @@ body::before {
         </div>
         <div class="kpi-block">
           <div class="geo-badge">Géom.</div>
-          <div class="kpi-num" id="kpiGlobGeo">-</div>
+          <div class="kpi-num" id="kpiGlobGeo">—</div>
           <div class="kpi-sub">Moy. géométrique %</div>
         </div>
       </div>
@@ -369,7 +362,7 @@ body::before {
   <div class="chart-card full">
     <div class="card-title">
       <div class="card-title-dot" style="background:var(--navy)"></div>
-      Arithmétique vs Géométrique - par section
+      Arithmétique vs Géométrique
     </div>
     <div class="compare-rows" id="compareRows"></div>
   </div>
@@ -391,103 +384,83 @@ body::before {
     <div class="bar-rows" id="barsDefi"></div>
   </div>
 
-  <!-- CHART.JS RADAR -->
-  <div class="chart-card full">
-    <div class="card-title">
-      <div class="card-title-dot" style="background:var(--teal)"></div>
-      Profil du groupe - Radar (10 questions)
-    </div>
-    <canvas id="radarChart" height="320"></canvas>
-  </div>
-
 </div>
 
 <!-- FOOTER -->
 <div class="footer" id="footerBar" style="display:none">
   <div class="footer-sync">
-    <div class="sync-dot"></div>
+    <div class="sync-dot" id="syncDot"></div>
     <span id="lastSync">Données chargées</span>
   </div>
-  <span>Formation Pratique en Gestion - Module 1</span>
+  <span id="metaInfo">Formation Pratique en Gestion - Module 1</span>
 </div>
 
-
 <script>
-/* =========================================================
-   CONFIG
-   Objectif: mise a jour quasi temps reel (moins de 1 minute)
+/* =======================
+   SOURCE DATA
+   ======================= */
+const GOOGLE_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYYRda3ViW1ibZtUDwlDxfDmXAcI56bPBlBn4V87WMc3EGGaVnD1_m49V3feWNugEDpwAW67tOy0aM/pub?gid=1485612999&single=true&output=csv";
 
-   - GitHub Pages ne peut pas forcer les headers Cache-Control.
-     Donc on fait:
-       1) polling frequant (15 s)
-       2) cache-busting (_t=timestamp)
-       3) fetch avec cache:'no-store' + timeout + retries
+// If you want to switch back to Zoho later, replace with your Zoho published CSV.
+// const ZOHO_CSV_URL = "https://sheet.zohopublic.com/sheet/published/....?download=csv&sheetname=Feuille1";
 
-   IMPORTANT:
-   - Si le fetch direct de Google/Zoho est bloque (CORS) OU si tu
-     observes du cache, utilise un proxy stable (Cloudflare Worker,
-     Vercel/Netlify function) et mets DATA_ENDPOINT.
-   ========================================================= */
+const CSV_URL = GOOGLE_CSV_URL;
 
-const DATA_ENDPOINT = ''; // Ex: https://xxxxx.workers.dev/csv  (recommande si tu veux du 100% fiable)
-const DATA_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQYYRda3ViW1ibZtUDwlDxfDmXAcI56bPBlBn4V87WMc3EGGaVnD1_m49V3feWNugEDpwAW67tOy0aM/pub?gid=1485612999&single=true&output=csv'; // Ton lien CSV public (Google Sheet). Tu peux remplacer par Zoho si besoin.
-const FALLBACK_URL = 'https://sheet.zohopublic.com/sheet/published/pv9kcea6425b01983412799844f2bd3244928?download=csv&sheetname=Feuille1'; // Optionnel. Laisse tel quel ou vide si tu ne veux pas de fallback.
+/* =======================
+   QUESTIONS + COLUMN INDEXES
+   NOTE: Your original dashboard relies on fixed column positions.
+   If your Google Sheet has different column order, you'll need to remap.
+   ======================= */
+const RESP_QUESTIONS = [
+  '1. Définir les gains à atteindre',
+  '2. Organiser le travail',
+  '3. Communiquer / Mobiliser',
+  '4. Mesurer au fur et à mesure',
+  '5. Développer son personnel',
+];
+const DEFI_QUESTIONS = [
+  '1. Exercer son leadership',
+  '2. Organisation optimale',
+  '3. Maîtriser la communication',
+  '4. Travail d\'équipe',
+  '5. Gestion rigoureuse',
+];
 
-const REFRESH_INTERVAL_MS = 15000; // 15 s
-const FETCH_TIMEOUT_MS = 8000;     // 8 s
+const COL_RESP = [43, 44, 45, 46, 47];
+const COL_DEFI = [48, 49, 50, 51, 52];
+const COL_DATE = 55;  // "La réponse est terminée"
+const COL_POSTE = 5;  // "Poste"
+const COL_GEO_RESP = 61;
+const COL_GEO_DEFI = 62;
+const COL_GEO_GLOB = 63;
 
-/* =========================
-   STATE
-   ========================= */
 let allRows = [];
-let headerMap = null; // header -> index
-let radarChartInstance = null;
+let isLoading = false;
 
-let refreshTimer = null;
-let isRefreshing = false;
-let lastSuccessAt = null;
-let lastGoodHash = null;
-
-/* =========================
-   DOM HELPERS
-   ========================= */
-function qs(sel) { return document.querySelector(sel); }
-
-function setStatus(text, ok=true) {
-  const dot = qs('.sync-dot');
-  const el = qs('#lastSync');
-  if (dot) dot.style.background = ok ? 'var(--green)' : '#e53e3e';
-  if (el) el.textContent = text;
+/* =======================
+   HELPERS
+   ======================= */
+function setSync(ok, msg) {
+  document.getElementById('syncDot').style.background = ok ? 'var(--green)' : '#e53e3e';
+  document.getElementById('lastSync').textContent = msg;
 }
 
-function withCacheBust(url) {
+function cacheBust(url) {
   const sep = url.includes('?') ? '&' : '?';
-  return `${url}${sep}_t=${Date.now()}`;
+  return url + sep + '_t=' + Date.now();
 }
 
-async function fetchTextWithTimeout(url, timeoutMs) {
-  const ctrl = new AbortController();
-  const id = setTimeout(() => ctrl.abort(), timeoutMs);
-  try {
-    const res = await fetch(url, {
-      cache: 'no-store',
-      signal: ctrl.signal,
-      headers: {
-        'Cache-Control': 'no-cache',
-        'Pragma': 'no-cache'
-      }
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return await res.text();
-  } finally {
-    clearTimeout(id);
-  }
+async function fetchCSV(url) {
+  const res = await fetch(cacheBust(url), {
+    cache: 'no-store',
+    headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+  });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  return await res.text();
 }
 
-/* =========================
-   CSV PARSE (robuste)
-   ========================= */
-function parseCSVToTable(text) {
+function parseCSV(text) {
+  // Robust parser: supports commas + quotes + newlines
   const rows = [];
   let row = [];
   let cur = '';
@@ -501,13 +474,11 @@ function parseCSVToTable(text) {
       else { inQ = !inQ; }
       continue;
     }
-
     if (!inQ && ch === ',') {
       row.push(cur);
       cur = '';
       continue;
     }
-
     if (!inQ && ch === '\n') {
       row.push(cur);
       rows.push(row);
@@ -515,243 +486,85 @@ function parseCSVToTable(text) {
       cur = '';
       continue;
     }
-
     if (ch !== '\r') cur += ch;
   }
-
   if (cur.length || row.length) {
     row.push(cur);
     rows.push(row);
   }
-
-  if (rows.length < 2) return null;
-
-  const headers = rows[0].map(h => String(h || '').trim());
-  const data = rows.slice(1);
-
-  const map = new Map();
-  headers.forEach((h, idx) => {
-    const key = normalizeKey(h);
-    if (key) map.set(key, idx);
+  if (rows.length < 2) return [];
+  return rows.slice(1).filter(r => {
+    if (r.length < 53) return false;
+    const val = num(r[COL_RESP[0]]);
+    return val !== null && val >= 1 && val <= 10;
   });
-
-  return { headers, data, map };
-}
-
-function normalizeKey(s) {
-  return String(s || '')
-    .trim()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase();
 }
 
 function num(val) {
   const n = parseFloat(String(val ?? '').replace(',', '.'));
   return isNaN(n) ? null : n;
 }
-
 function avg(arr) {
-  const valid = arr.filter(v => v !== null && v !== undefined);
+  const valid = arr.filter(v => v !== null && v > 0);
   if (!valid.length) return null;
-  return valid.reduce((a,b) => a + b, 0) / valid.length;
+  return valid.reduce((a, b) => a + b, 0) / valid.length;
 }
-
-function geoMeanRowScores(scoresOutOf10) {
-  const valid = scoresOutOf10.filter(v => v !== null && v > 0);
+function geoMean(vals) {
+  const valid = vals.filter(v => v !== null && v > 0);
   if (!valid.length) return null;
   const logs = valid.map(v => Math.log(v / 10));
-  const meanLog = logs.reduce((a,b)=>a+b,0) / logs.length;
-  return Math.round(Math.exp(meanLog) * 1000) / 10; // en %
+  const meanLog = logs.reduce((a, b) => a + b, 0) / logs.length;
+  return Math.round((Math.exp(meanLog) * 100) * 10) / 10;
 }
-
 function pct(val) {
-  if (val === null) return '-';
-  return (Math.round(val * 10) / 10) + '%';
+  if (val === null) return '—';
+  return Math.round(val * 10) / 10 + '%';
 }
 
-/* =========================
-   COLUMN RESOLUTION (par nom)
-   Pour etre compatible Zoho CSV ou Google CSV.
-   ========================= */
-function findCol(map, candidates) {
-  for (const c of candidates) {
-    const key = normalizeKey(c);
-    if (map.has(key)) return map.get(key);
-  }
-  return null;
-}
-
-function findColByPredicate(headers, pred) {
-  for (let i = 0; i < headers.length; i++) {
-    if (pred(headers[i])) return i;
-  }
-  return null;
-}
-
-function resolveColumns(table) {
-  const headers = table.headers;
-  const map = table.map;
-  const data = table.data;
-
-  // Helpers: pick the "best" numeric column among candidates (1..10) based on coverage.
-  function numericCoverage(idx) {
-    if (idx === null || idx === undefined) return 0;
-    let ok = 0, total = 0;
-    for (const r of data) {
-      const v = num(r[idx]);
-      if (v === null) continue;
-      total++;
-      if (v >= 1 && v <= 10) ok++;
-    }
-    return total ? (ok / total) : 0;
-  }
-
-  function candidateCols(prefixes) {
-    const normPrefixes = prefixes.map(p => normalizeKey(p));
-    const out = [];
-    for (let i = 0; i < headers.length; i++) {
-      const h = normalizeKey(headers[i]);
-      if (!h) continue;
-      if (normPrefixes.some(p => h.startsWith(p))) out.push(i);
-    }
-    // If nothing startsWith, try includes (more permissive)
-    if (!out.length) {
-      for (let i = 0; i < headers.length; i++) {
-        const h = normalizeKey(headers[i]);
-        if (!h) continue;
-        if (normPrefixes.some(p => h.includes(p))) out.push(i);
-      }
-    }
-    return out;
-  }
-
-  function bestNumericCol(prefixes) {
-    const cands = candidateCols(prefixes);
-    if (!cands.length) return null;
-    let best = cands[0];
-    let bestScore = numericCoverage(best);
-    for (const idx of cands.slice(1)) {
-      const sc = numericCoverage(idx);
-      if (sc > bestScore) { bestScore = sc; best = idx; }
-    }
-    // If the best candidate barely has any numeric values, treat as missing.
-    return bestScore >= 0.15 ? best : null;
-  }
-
-  // Poste + Date (soft requirements)
-  const colPoste = findCol(map, ['Poste', 'Rôle', 'Role', 'Fonction', 'Titre']) ?? null;
-
-  const colDate =
-    findCol(map, ['La réponse est terminée', 'Date du Workshop', 'Timestamp', 'Date', 'Submitted at', 'Submitted']) ??
-    null;
-
-  // Question columns (hard requirements)
-  const resp = [
-    bestNumericCol(['1) Définir les gains à atteindre', '1. Définir les gains à atteindre', 'Définir les gains à atteindre']),
-    bestNumericCol(['2) Organiser le travail', '2. Organiser le travail', 'Organiser le travail']),
-    bestNumericCol(['3) Communiquer ses attentes', '3) Communiquer', 'Communiquer ses attentes', 'Communiquer']),
-    bestNumericCol(['4) Mesurer au fur et à mesure', '4) Mesurer', 'Mesurer au fur et à mesure', 'Mesurer']),
-    bestNumericCol(['5) Développer son personnel', '5) Développer', 'Développer son personnel', 'Développer']),
-  ];
-
-  const defi = [
-    bestNumericCol(['1) Exercer son leadership', '1. Exercer son leadership', 'Exercer son leadership']),
-    bestNumericCol(['2) Maintenir une organisation', '2. Maintenir une organisation', 'Maintenir une organisation optimale', 'Organisation optimale']),
-    bestNumericCol(['3) Maîtriser la communication', '3. Maîtriser la communication', 'Maitriser la communication']),
-    bestNumericCol(['4) Implanter et maintenir le travail d', '4. Implanter et maintenir le travail', 'Implanter et maintenir le travail d', 'Travail d\'équipe', 'Travail d’equipe']),
-    bestNumericCol(['5) Implanter et maintenir une gestion', '5. Implanter et maintenir une gestion', 'Gestion rigoureuse']),
-  ];
-
-  const qCols = [...resp, ...defi].filter(i => i !== null);
-
-  // Geo columns (optional)
-  const colGeoResp = findCol(map, ['Géom. Responsabilités %', 'Geom. Responsabilites %', 'Geome Responsabilites %']) ?? null;
-  const colGeoDefi = findCol(map, ['Géom. Défis %', 'Geom. Defis %', 'Geome Defis %']) ?? null;
-  const colGeoGlob = findCol(map, ['Géom. Globale %', 'Geom. Globale %', 'Geome Globale %', 'Géom. Global %', 'Geom. Global %']) ?? null;
-
-  return {
-    colPoste,
-    colDate,
-    resp,
-    defi,
-    qCols,
-    colGeoResp,
-    colGeoDefi,
-    colGeoGlob
-  };
-}
-
-
-/* =========================
-   DATE PARSE (Zoho FR + formats communs)
-   ========================= */
-function dateToISO(dateStr) {
+// Handles multiple formats (Zoho French, ISO, dd/mm/yyyy, mm/dd/yyyy)
+function anyDateToISO(dateStr) {
   if (!dateStr) return null;
-  const s = String(dateStr).trim();
+  const s0 = String(dateStr).trim();
+  if (!s0) return null;
 
-  // 2026-03-02 or 2026-03-02 12:34:56
-  const iso = s.match(/(\d{4})-(\d{2})-(\d{2})/);
-  if (iso) return `${iso[1]}-${iso[2]}-${iso[3]}`;
+  // ISO yyyy-mm-dd...
+  const iso = s0.match(/(\d{4})-(\d{2})-(\d{2})/);
+  if (iso) return iso[1] + '-' + iso[2] + '-' + iso[3];
 
-  // dd/mm/yyyy or mm/dd/yyyy
-  const sl = s.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-  if (sl) {
-    let a = parseInt(sl[1], 10);
-    let b = parseInt(sl[2], 10);
-    const y = sl[3];
-    // Heuristique: si a > 12, c'est le jour. Sinon on assume format FR (jour/mois)
-    const day = (a > 12) ? a : a;
-    const mo  = (a > 12) ? b : b;
-    return `${y}-${String(mo).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+  // dd/mm/yyyy or dd-mm-yyyy
+  const dm = s0.match(/\b(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})\b/);
+  if (dm) {
+    const d = String(dm[1]).padStart(2,'0');
+    const m = String(dm[2]).padStart(2,'0');
+    const y = dm[3];
+    // ambiguity: if first number > 12, it's definitely day/month
+    // otherwise assume day/month (FR context)
+    return y + '-' + m + '-' + d;
   }
 
-  // Zoho FR: "11 févr. 2026, 11 h 36..."
+  // Zoho French: "11 févr. 2026, ..."
   const months = {
     'janv': '01', 'fevr': '02', 'mars': '03', 'avr': '04',
     'mai':  '05', 'juin': '06', 'juil': '07', 'aout': '08',
     'sept': '09', 'oct':  '10', 'nov':  '11', 'dec':  '12'
   };
-  const clean = s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  const clean = s0.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
   const m = clean.match(/(\d{1,2})\s+(\w+)\.?\s+(\d{4})/);
   if (m) {
-    const key = m[2].replace(/\./g,'');
-    const mo = months[key] || '00';
-    return `${m[3]}-${mo}-${String(m[1]).padStart(2,'0')}`;
+    const mo = months[m[2].replace(/\./g,'')] || '00';
+    return m[3] + '-' + mo + '-' + String(m[1]).padStart(2,'0');
   }
 
   return null;
 }
 
-/* =========================
+/* =======================
    UI RENDER
-   ========================= */
-const RESP_QUESTIONS = [
-  '1. Définir les gains à atteindre',
-  '2. Organiser le travail',
-  '3. Communiquer / Mobiliser',
-  '4. Mesurer au fur et à mesure',
-  '5. Développer son personnel',
-];
-const DEFI_QUESTIONS = [
-  '1. Exercer son leadership',
-  '2. Maintenir une organisation optimale du travail',
-  '3. Maîtriser la communication',
-  "4. Implanter et maintenir le travail d'équipe",
-  '5. Implanter et maintenir une gestion rigoureuse',
-];
-
-function populatePosteFilter(rows, colPoste) {
-  const sel = qs('#posteFilter');
+   ======================= */
+function populatePosteFilter() {
+  const sel = document.getElementById('posteFilter');
   const current = sel.value || 'all';
-
-  if (colPoste === null || colPoste === undefined) {
-    sel.innerHTML = '<option value="all">Tous les postes</option>';
-    return;
-  }
-
-  const postes = [...new Set(rows.map(r => r[colPoste]).filter(p => p && String(p).trim()))]
-    .sort((a,b)=>String(a).localeCompare(String(b),'fr'));
-
+  const postes = [...new Set(allRows.map(r => r[COL_POSTE]).filter(p => p && String(p).trim()))].sort((a,b)=>String(a).localeCompare(String(b)));
   sel.innerHTML = '<option value="all">Tous les postes</option>';
   postes.forEach(p => {
     const opt = document.createElement('option');
@@ -762,7 +575,7 @@ function populatePosteFilter(rows, colPoste) {
 }
 
 function renderBarRows(containerId, questions, avgScores, color) {
-  const el = qs('#' + containerId);
+  const el = document.getElementById(containerId);
   el.innerHTML = '';
   questions.forEach((q, i) => {
     const v = avgScores[i];
@@ -782,23 +595,20 @@ function renderBarRows(containerId, questions, avgScores, color) {
   });
   setTimeout(() => {
     el.querySelectorAll('.bar-fill').forEach(b => b.style.width = b.dataset.pct + '%');
-  }, 80);
+  }, 100);
 }
 
 function renderCompare(sections) {
-  const el = qs('#compareRows');
+  const el = document.getElementById('compareRows');
   el.innerHTML = '';
   sections.forEach(s => {
-    const diff = (s.arith !== null && s.geo !== null) ? Math.round((s.arith - s.geo) * 10) / 10 : null;
-
+    const diff = s.arith !== null && s.geo !== null ? Math.round((s.arith - s.geo) * 10) / 10 : null;
     const row = document.createElement('div');
     row.className = 'compare-row';
     row.innerHTML = `
       <div class="compare-label">
         <strong>${s.label}</strong>
-        ${diff !== null ? `<span class="ecart-badge" style="background:rgba(0,33,105,0.08);color:var(--text)">Ecart (Arith. - Geom.) ${
-          diff > 0 ? '+' : ''
-        }${diff} pts</span>` : ''}
+        ${diff !== null ? `<span class="ecart-badge" style="background:rgba(0,33,105,0.08);color:var(--text)">Écart (Arith. − Géom.) : ${diff > 0 ? '+' : ''}${diff} pts</span>` : ''}
       </div>
       <div class="compare-tracks">
         <div class="compare-track">
@@ -810,7 +620,7 @@ function renderCompare(sections) {
           </div>
         </div>
         <div class="compare-track">
-          <div class="compare-track-label" style="color:${s.colorGeo}">Geom.</div>
+          <div class="compare-track-label" style="color:${s.colorGeo}">Géom.</div>
           <div class="compare-bar-wrap">
             <div class="compare-bar" style="width:0%;background:${s.colorGeo}" data-pct="${s.geo || 0}">
               <span class="compare-bar-val">${pct(s.geo)}</span>
@@ -822,63 +632,28 @@ function renderCompare(sections) {
   });
   setTimeout(() => {
     el.querySelectorAll('.compare-bar').forEach(b => b.style.width = b.dataset.pct + '%');
-  }, 120);
+  }, 150);
 }
 
-function renderRadar(labels, data) {
-  if (!qs('#radarChart')) return;
-  if (radarChartInstance) radarChartInstance.destroy();
-  const ctx = qs('#radarChart').getContext('2d');
-  radarChartInstance = new Chart(ctx, {
-    type: 'radar',
-    data: {
-      labels,
-      datasets: [{
-        label: 'Moyenne du groupe',
-        data,
-        backgroundColor: 'rgba(0,33,105,0.12)',
-        borderColor: '#002169',
-        borderWidth: 2,
-        pointBackgroundColor: '#ffed00',
-        pointBorderColor: '#002169',
-        pointRadius: 5,
-      }]
-    },
-    options: {
-      responsive: true,
-      scales: {
-        r: {
-          min: 0, max: 10,
-          ticks: { stepSize: 2, font: { size: 10 } },
-          grid: { color: 'rgba(0,33,105,0.08)' },
-          pointLabels: { font: { size: 11, family: 'DM Sans' }, color: '#002169' }
-        }
-      },
-      plugins: { legend: { display: false } }
-    }
-  });
-}
-
-function _renderDashboardInternal(cols) {
-  const dateVal = qs('#dateFilter').value;
-  const posteVal = qs('#posteFilter').value;
+function _renderDashboardInternal() {
+  const dateVal = document.getElementById('dateFilter').value;
+  const posteVal = document.getElementById('posteFilter').value;
 
   let rows = allRows;
+  if (dateVal) rows = rows.filter(r => anyDateToISO(r[COL_DATE]) === dateVal);
+  if (posteVal !== 'all') rows = rows.filter(r => r[COL_POSTE] === posteVal);
 
-  if (dateVal && cols.colDate !== null && cols.colDate !== undefined) rows = rows.filter(r => dateToISO(r[cols.colDate]) === dateVal);
-  if (posteVal !== 'all' && cols.colPoste !== null && cols.colPoste !== undefined) rows = rows.filter(r => r[cols.colPoste] === posteVal);
+  document.getElementById('countNum').textContent = rows.length;
 
-  qs('#countNum').textContent = rows.length;
-
-  if (!rows.length) {
-    qs('#dashboard').style.display = 'none';
-    qs('#filterBar').style.display = 'flex';
-    qs('#footerBar').style.display = 'flex';
+  if (rows.length === 0) {
+    document.getElementById('dashboard').style.display = 'none';
+    document.getElementById('filterBar').style.display = 'flex';
+    document.getElementById('footerBar').style.display = 'flex';
     return;
   }
 
-  const respAvgs = cols.resp.map(ci => avg(rows.map(r => num(r[ci]))));
-  const defiAvgs = cols.defi.map(ci => avg(rows.map(r => num(r[ci]))));
+  const respAvgs = COL_RESP.map(ci => avg(rows.map(r => num(r[ci]))));
+  const defiAvgs = COL_DEFI.map(ci => avg(rows.map(r => num(r[ci]))));
 
   const respArith = avg(respAvgs.filter(v => v !== null));
   const defiArith = avg(defiAvgs.filter(v => v !== null));
@@ -888,192 +663,114 @@ function _renderDashboardInternal(cols) {
   const defiArithPct = defiArith !== null ? defiArith * 10 : null;
   const globArithPct = globArith !== null ? globArith * 10 : null;
 
-  // Geo: prefer pre-calculated cols if present and looks like percentage
-  const gResp = rows.map(r => num(r[cols.colGeoResp])).filter(v => v !== null && v > 0);
-  const gDefi = rows.map(r => num(r[cols.colGeoDefi])).filter(v => v !== null && v > 0);
-  const gGlob = rows.map(r => num(r[cols.colGeoGlob])).filter(v => v !== null && v > 0);
-
   let respGeo, defiGeo, globGeo;
+  const bjVals = rows.map(r => num(r[COL_GEO_RESP])).filter(v => v !== null && v > 0);
+  const bkVals = rows.map(r => num(r[COL_GEO_DEFI])).filter(v => v !== null && v > 0);
+  const blVals = rows.map(r => num(r[COL_GEO_GLOB])).filter(v => v !== null && v > 0);
 
-  if (gResp.length && gDefi.length && gGlob.length) {
-    respGeo = avg(gResp);
-    defiGeo = avg(gDefi);
-    globGeo = avg(gGlob);
+  if (bjVals.length > 0) {
+    respGeo = avg(bjVals);
+    defiGeo = avg(bkVals);
+    globGeo = avg(blVals);
   } else {
-    respGeo = avg(rows.map(r => geoMeanRowScores(cols.resp.map(ci => num(r[ci])))).filter(v => v !== null));
-    defiGeo = avg(rows.map(r => geoMeanRowScores(cols.defi.map(ci => num(r[ci])))).filter(v => v !== null));
-    globGeo = avg(rows.map(r => geoMeanRowScores([...cols.resp, ...cols.defi].map(ci => num(r[ci])))).filter(v => v !== null));
+    respGeo = avg(rows.map(r => geoMean(COL_RESP.map(ci => num(r[ci])))).filter(v => v !== null));
+    defiGeo = avg(rows.map(r => geoMean(COL_DEFI.map(ci => num(r[ci])))).filter(v => v !== null));
+    globGeo = avg(rows.map(r => geoMean([...COL_RESP, ...COL_DEFI].map(ci => num(r[ci])))).filter(v => v !== null));
   }
 
-  const fmt = v => v !== null ? (Math.round(v * 10) / 10) + '%' : '-';
-
-  qs('#kpiRespArith').textContent = respArithPct !== null ? fmt(respArithPct) : '-';
-  qs('#kpiRespGeo').textContent = fmt(respGeo);
-
-  qs('#kpiDefiArith').textContent = defiArithPct !== null ? fmt(defiArithPct) : '-';
-  qs('#kpiDefiGeo').textContent = fmt(defiGeo);
-
-  qs('#kpiGlobArith').textContent = globArithPct !== null ? fmt(globArithPct) : '-';
-  qs('#kpiGlobGeo').textContent = fmt(globGeo);
+  const fmt = v => v !== null ? Math.round(v * 10) / 10 + '%' : '—';
+  document.getElementById('kpiRespArith').textContent = respArithPct !== null ? Math.round(respArithPct * 10) / 10 + '%' : '—';
+  document.getElementById('kpiRespGeo').textContent = fmt(respGeo);
+  document.getElementById('kpiDefiArith').textContent = defiArithPct !== null ? Math.round(defiArithPct * 10) / 10 + '%' : '—';
+  document.getElementById('kpiDefiGeo').textContent = fmt(defiGeo);
+  document.getElementById('kpiGlobArith').textContent = globArithPct !== null ? Math.round(globArithPct * 10) / 10 + '%' : '—';
+  document.getElementById('kpiGlobGeo').textContent = fmt(globGeo);
 
   renderCompare([
     { label: 'Responsabilités', arith: respArithPct !== null ? Math.round(respArithPct * 10) / 10 : null, geo: respGeo !== null ? Math.round(respGeo * 10) / 10 : null, color: 'var(--blue)', colorGeo: '#1a5a9a' },
-    { label: 'Défis',           arith: defiArithPct !== null ? Math.round(defiArithPct * 10) / 10 : null, geo: defiGeo !== null ? Math.round(defiGeo * 10) / 10 : null, color: 'var(--green)', colorGeo: '#6a8a15' },
-    { label: 'Global',          arith: globArithPct !== null ? Math.round(globArithPct * 10) / 10 : null, geo: globGeo !== null ? Math.round(globGeo * 10) / 10 : null, color: 'var(--teal)', colorGeo: '#007a92' },
+    { label: 'Défis',          arith: defiArithPct !== null ? Math.round(defiArithPct * 10) / 10 : null, geo: defiGeo !== null ? Math.round(defiGeo * 10) / 10 : null, color: 'var(--green)', colorGeo: '#6a8a15' },
+    { label: 'Global',         arith: globArithPct !== null ? Math.round(globArithPct * 10) / 10 : null, geo: globGeo !== null ? Math.round(globGeo * 10) / 10 : null, color: 'var(--teal)', colorGeo: '#007a92' },
   ]);
 
   renderBarRows('barsResp', RESP_QUESTIONS, respAvgs, 'var(--blue)');
   renderBarRows('barsDefi', DEFI_QUESTIONS, defiAvgs, 'var(--green)');
 
-  const allAvgs = [...respAvgs, ...defiAvgs].map(v => v !== null ? Math.round(v * 10) / 10 : 0);
-  const radarLabels = [...RESP_QUESTIONS, ...DEFI_QUESTIONS].map(q => q.replace(/^\d+\.\s/, ''));
-  renderRadar(radarLabels, allAvgs);
-
-  qs('#dashboard').style.display = 'grid';
-  qs('#filterBar').style.display = 'flex';
-  qs('#footerBar').style.display = 'flex';
+  document.getElementById('dashboard').style.display = 'grid';
+  document.getElementById('filterBar').style.display = 'flex';
+  document.getElementById('footerBar').style.display = 'flex';
 }
 
-/* =========================
-   LOAD + AUTO REFRESH
-   ========================= */
-async function fetchLatestCSV() {
-  // 1) Proxy stable (si fourni)
-  if (DATA_ENDPOINT && DATA_ENDPOINT.trim().length) {
-    return await fetchTextWithTimeout(withCacheBust(DATA_ENDPOINT.trim()), FETCH_TIMEOUT_MS);
-  }
+function renderDashboard() { _renderDashboardInternal(); }
 
-  // 2) Direct Google/Zoho
-  try {
-    return await fetchTextWithTimeout(withCacheBust(DATA_URL), FETCH_TIMEOUT_MS);
-  } catch (e) {
-    if (FALLBACK_URL && FALLBACK_URL.trim().length) {
-      return await fetchTextWithTimeout(withCacheBust(FALLBACK_URL), FETCH_TIMEOUT_MS);
-    }
-    throw e;
-  }
-}
+/* =======================
+   LOAD (MANUAL ONLY)
+   ======================= */
+async function loadData(firstLoad=true) {
+  if (isLoading) return;
+  isLoading = true;
 
-async function sha256Hex(text) {
-  const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
-  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join('');
-}
+  // Preserve current filter choices (do not reset them on refresh)
+  const prevDate = document.getElementById('dateFilter').value;
+  const prevPoste = document.getElementById('posteFilter').value;
 
-async function _loadData({ silent=false }={}) {
-  if (isRefreshing) return;
-  isRefreshing = true;
-
-  // Ne pas cacher le dashboard si on a deja des donnees (important en live)
-  if (!silent && !lastSuccessAt) {
-    qs('#loadingState').style.display = 'block';
-    qs('#errorState').style.display = 'none';
-    qs('#dashboard').style.display = 'none';
-    qs('#filterBar').style.display = 'none';
-    qs('#footerBar').style.display = 'none';
+  // On first load, show spinner; on manual refresh, keep the dashboard visible
+  if (firstLoad) {
+    document.getElementById('loadingState').style.display = 'block';
+    document.getElementById('errorState').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'none';
+    document.getElementById('filterBar').style.display = 'none';
+    document.getElementById('footerBar').style.display = 'none';
   } else {
-    setStatus('Synchronisation...', true);
+    setSync(true, 'Synchronisation…');
   }
 
   try {
-    const text = await fetchLatestCSV();
-    const hash = await sha256Hex(text);
+    const text = await fetchCSV(CSV_URL);
+    allRows = parseCSV(text);
+    if (allRows.length === 0) throw new Error('No data parsed');
 
-    const table = parseCSVToTable(text);
-    if (!table) throw new Error('CSV invalide');
-
-    const cols = resolveColumns(table);
-    headerMap = cols;
-
-    // Filtre: garder les lignes valides (au moins 3 réponses numériques 1..10)
-    if (!cols.qCols || !cols.qCols.length) {
-      console.warn('Colonnes détectées:', table.headers);
-      throw new Error('Impossible de détecter les colonnes de questions (vérifier les en-têtes du CSV).');
+    // Populate poste dropdown but keep selection when possible
+    populatePosteFilter();
+    if (prevPoste && [...document.getElementById('posteFilter').options].some(o => o.value === prevPoste)) {
+      document.getElementById('posteFilter').value = prevPoste;
     }
-    const data = table.data.filter(r => {
-      let c = 0;
-      for (const idx of cols.qCols) {
-        const v = num(r[idx]);
-        if (v !== null && v >= 1 && v <= 10) c++;
-      }
-      return c >= 3;
-    });
 
-    if (!data.length) throw new Error('Aucune donnee valide');
-
-    allRows = data;
-
-    // Preserve current filter selections
-    const prevDate = qs('#dateFilter').value;
-    const prevPoste = qs('#posteFilter').value;
-
-    populatePosteFilter(allRows, cols.colPoste);
-
-    // Default date: today if empty
-    if (!prevDate) {
+    // Date default: only on very first load if empty
+    if (firstLoad && !prevDate) {
       const now = new Date();
-      const todayISO = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
-      qs('#dateFilter').value = todayISO;
-    } else {
-      qs('#dateFilter').value = prevDate;
+      const todayISO = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
+      document.getElementById('dateFilter').value = todayISO;
+    } else if (prevDate) {
+      document.getElementById('dateFilter').value = prevDate;
     }
 
-    if (prevPoste && [...qs('#posteFilter').options].some(o => o.value === prevPoste)) {
-      qs('#posteFilter').value = prevPoste;
-    }
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('errorState').style.display = 'none';
+    document.getElementById('filterBar').style.display = 'flex';
+    document.getElementById('footerBar').style.display = 'flex';
 
-    _renderDashboardInternal(cols);
+    // Meta debug: show latest completed timestamp in the dataset
+    const dates = allRows.map(r => anyDateToISO(r[COL_DATE])).filter(Boolean).sort();
+    const latestDate = dates.length ? dates[dates.length - 1] : '—';
+    document.getElementById('metaInfo').textContent = `Source: Google CSV | Dernière date détectée: ${latestDate}`;
 
-    qs('#loadingState').style.display = 'none';
-    qs('#errorState').style.display = 'none';
-
-    lastSuccessAt = new Date();
-    const changed = (lastGoodHash && lastGoodHash !== hash);
-    lastGoodHash = hash;
-
-    setStatus(
-      changed
-        ? `Nouvelles reponses detectees a ${lastSuccessAt.toLocaleTimeString('fr-CA')}`
-        : `Actualise a ${lastSuccessAt.toLocaleTimeString('fr-CA')}`,
-      true
-    );
+    renderDashboard();
+    setSync(true, 'Actualisé à ' + new Date().toLocaleTimeString('fr-CA'));
   } catch (e) {
     console.error(e);
-
-    if (lastSuccessAt) {
-      setStatus('Erreur de synchro, on reessaie automatiquement...', false);
-      qs('#loadingState').style.display = 'none';
-      qs('#errorState').style.display = 'none';
-      qs('#filterBar').style.display = 'flex';
-      qs('#footerBar').style.display = 'flex';
+    if (firstLoad) {
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('errorState').style.display = 'block';
     } else {
-      qs('#loadingState').style.display = 'none';
-      qs('#errorState').style.display = 'block';
+      setSync(false, 'Erreur de synchro (réessaie manuelle requise)');
     }
   } finally {
-    isRefreshing = false;
+    isLoading = false;
   }
 }
 
-function startAutoRefresh() {
-  if (refreshTimer) clearInterval(refreshTimer);
-  refreshTimer = setInterval(() => _loadData({ silent:true }), REFRESH_INTERVAL_MS);
-}
-
-function manualRefresh() {
-  _loadData({ silent:true });
-}
-
-window.loadData = manualRefresh;
-window.renderDashboard = () => headerMap && _renderDashboardInternal(headerMap);
-
-/* INIT */
-qs('#dateBadge').textContent = new Date().toLocaleDateString('fr-CA', {
-  weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-});
-
-_loadData({ silent:false });
-startAutoRefresh();
+document.getElementById('dateBadge').textContent = new Date().toLocaleDateString('fr-CA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+loadData(true);
 </script>
-
 </body>
 </html>
