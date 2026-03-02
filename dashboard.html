@@ -591,55 +591,96 @@ function findColByPredicate(headers, pred) {
 function resolveColumns(table) {
   const headers = table.headers;
   const map = table.map;
+  const data = table.data;
 
-  const colPoste = findCol(map, ['Poste']) ?? 5;
+  // Helpers: pick the "best" numeric column among candidates (1..10) based on coverage.
+  function numericCoverage(idx) {
+    if (idx === null || idx === undefined) return 0;
+    let ok = 0, total = 0;
+    for (const r of data) {
+      const v = num(r[idx]);
+      if (v === null) continue;
+      total++;
+      if (v >= 1 && v <= 10) ok++;
+    }
+    return total ? (ok / total) : 0;
+  }
 
-  // Date colonne: Zoho export = "La réponse est terminée"
-  // Google peut avoir "Timestamp" ou autre. On essaie plusieurs options.
+  function candidateCols(prefixes) {
+    const normPrefixes = prefixes.map(p => normalizeKey(p));
+    const out = [];
+    for (let i = 0; i < headers.length; i++) {
+      const h = normalizeKey(headers[i]);
+      if (!h) continue;
+      if (normPrefixes.some(p => h.startsWith(p))) out.push(i);
+    }
+    // If nothing startsWith, try includes (more permissive)
+    if (!out.length) {
+      for (let i = 0; i < headers.length; i++) {
+        const h = normalizeKey(headers[i]);
+        if (!h) continue;
+        if (normPrefixes.some(p => h.includes(p))) out.push(i);
+      }
+    }
+    return out;
+  }
+
+  function bestNumericCol(prefixes) {
+    const cands = candidateCols(prefixes);
+    if (!cands.length) return null;
+    let best = cands[0];
+    let bestScore = numericCoverage(best);
+    for (const idx of cands.slice(1)) {
+      const sc = numericCoverage(idx);
+      if (sc > bestScore) { bestScore = sc; best = idx; }
+    }
+    // If the best candidate barely has any numeric values, treat as missing.
+    return bestScore >= 0.15 ? best : null;
+  }
+
+  // Poste + Date (soft requirements)
+  const colPoste = findCol(map, ['Poste', 'Rôle', 'Role', 'Fonction', 'Titre']) ?? null;
+
   const colDate =
     findCol(map, ['La réponse est terminée', 'Date du Workshop', 'Timestamp', 'Date', 'Submitted at', 'Submitted']) ??
-    55;
+    null;
 
-  // Responsabilites (valeurs 1..10)
-  const respCols = [
-    findColByPredicate(headers, h => normalizeKey(h).startsWith(normalizeKey('1) Définir les gains à atteindre')) && normalizeKey(h).endsWith('.1')),
-    findColByPredicate(headers, h => normalizeKey(h).startsWith(normalizeKey('2) Organiser le travail')) && normalizeKey(h).endsWith('.1')),
-    findColByPredicate(headers, h => normalizeKey(h).startsWith(normalizeKey('3) Communiquer')) && normalizeKey(h).endsWith('.1')),
-    findColByPredicate(headers, h => normalizeKey(h).startsWith(normalizeKey('4) Mesurer')) && normalizeKey(h).endsWith('.1')),
-    findColByPredicate(headers, h => normalizeKey(h).startsWith(normalizeKey('5) Développer')) && normalizeKey(h).endsWith('.1')),
+  // Question columns (hard requirements)
+  const resp = [
+    bestNumericCol(['1) Définir les gains à atteindre', '1. Définir les gains à atteindre', 'Définir les gains à atteindre']),
+    bestNumericCol(['2) Organiser le travail', '2. Organiser le travail', 'Organiser le travail']),
+    bestNumericCol(['3) Communiquer ses attentes', '3) Communiquer', 'Communiquer ses attentes', 'Communiquer']),
+    bestNumericCol(['4) Mesurer au fur et à mesure', '4) Mesurer', 'Mesurer au fur et à mesure', 'Mesurer']),
+    bestNumericCol(['5) Développer son personnel', '5) Développer', 'Développer son personnel', 'Développer']),
   ];
 
-  // Defis (valeurs 1..10)
-  const defiCols = [
-    findColByPredicate(headers, h => normalizeKey(h).startsWith(normalizeKey('1) Exercer son leadership')) && normalizeKey(h).endsWith('.1')),
-    findColByPredicate(headers, h => normalizeKey(h).startsWith(normalizeKey('2) Maintenir une organisation')) && normalizeKey(h).endsWith('.1')),
-    findColByPredicate(headers, h => normalizeKey(h).startsWith(normalizeKey('3) Maîtriser la communication')) && normalizeKey(h).endsWith('.1')),
-    findColByPredicate(headers, h => normalizeKey(h).startsWith(normalizeKey('4) Implanter et maintenir le travail d')) && normalizeKey(h).endsWith('.1')),
-    findColByPredicate(headers, h => normalizeKey(h).startsWith(normalizeKey('5) Implanter et maintenir une gestion')) && normalizeKey(h).endsWith('.1')),
+  const defi = [
+    bestNumericCol(['1) Exercer son leadership', '1. Exercer son leadership', 'Exercer son leadership']),
+    bestNumericCol(['2) Maintenir une organisation', '2. Maintenir une organisation', 'Maintenir une organisation optimale', 'Organisation optimale']),
+    bestNumericCol(['3) Maîtriser la communication', '3. Maîtriser la communication', 'Maitriser la communication']),
+    bestNumericCol(['4) Implanter et maintenir le travail d', '4. Implanter et maintenir le travail', 'Implanter et maintenir le travail d', 'Travail d\'équipe', 'Travail d’equipe']),
+    bestNumericCol(['5) Implanter et maintenir une gestion', '5. Implanter et maintenir une gestion', 'Gestion rigoureuse']),
   ];
 
-  // Si pas trouve, fallback indices connus (Zoho export)
-  const respFallback = [43,44,45,46,47];
-  const defiFallback = [48,49,50,51,52];
+  const qCols = [...resp, ...defi].filter(i => i !== null);
 
-  const resp = respCols.every(x => x !== null && x !== undefined) ? respCols : respFallback;
-  const defi = defiCols.every(x => x !== null && x !== undefined) ? defiCols : defiFallback;
-
-  // Geo colonnes (si presentes)
-  const colGeoResp = findCol(map, ['Géom. Responsabilités %', 'Geom. Responsabilites %', 'Geome Responsabilites %']) ?? 61;
-  const colGeoDefi = findCol(map, ['Géom. Défis %', 'Geom. Defis %', 'Geome Defis %']) ?? 62;
-  const colGeoGlob = findCol(map, ['Géom. Globale %', 'Geom. Globale %', 'Geome Globale %']) ?? 63;
+  // Geo columns (optional)
+  const colGeoResp = findCol(map, ['Géom. Responsabilités %', 'Geom. Responsabilites %', 'Geome Responsabilites %']) ?? null;
+  const colGeoDefi = findCol(map, ['Géom. Défis %', 'Geom. Defis %', 'Geome Defis %']) ?? null;
+  const colGeoGlob = findCol(map, ['Géom. Globale %', 'Geom. Globale %', 'Geome Globale %', 'Géom. Global %', 'Geom. Global %']) ?? null;
 
   return {
     colPoste,
     colDate,
     resp,
     defi,
+    qCols,
     colGeoResp,
     colGeoDefi,
     colGeoGlob
   };
 }
+
 
 /* =========================
    DATE PARSE (Zoho FR + formats communs)
@@ -702,8 +743,15 @@ const DEFI_QUESTIONS = [
 function populatePosteFilter(rows, colPoste) {
   const sel = qs('#posteFilter');
   const current = sel.value || 'all';
+
+  if (colPoste === null || colPoste === undefined) {
+    sel.innerHTML = '<option value="all">Tous les postes</option>';
+    return;
+  }
+
   const postes = [...new Set(rows.map(r => r[colPoste]).filter(p => p && String(p).trim()))]
     .sort((a,b)=>String(a).localeCompare(String(b),'fr'));
+
   sel.innerHTML = '<option value="all">Tous les postes</option>';
   postes.forEach(p => {
     const opt = document.createElement('option');
@@ -711,6 +759,7 @@ function populatePosteFilter(rows, colPoste) {
     if (p === current) opt.selected = true;
     sel.appendChild(opt);
   });
+}
 }
 
 function renderBarRows(containerId, questions, avgScores, color) {
@@ -817,8 +866,8 @@ function renderDashboard(cols) {
 
   let rows = allRows;
 
-  if (dateVal) rows = rows.filter(r => dateToISO(r[cols.colDate]) === dateVal);
-  if (posteVal !== 'all') rows = rows.filter(r => r[cols.colPoste] === posteVal);
+  if (dateVal && cols.colDate !== null && cols.colDate !== undefined) rows = rows.filter(r => dateToISO(r[cols.colDate]) === dateVal);
+  if (posteVal !== 'all' && cols.colPoste !== null && cols.colPoste !== undefined) rows = rows.filter(r => r[cols.colPoste] === posteVal);
 
   qs('#countNum').textContent = rows.length;
 
@@ -911,7 +960,7 @@ async function sha256Hex(text) {
   return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join('');
 }
 
-async function loadData({ silent=false }={}) {
+async function _loadData({ silent=false }={}) {
   if (isRefreshing) return;
   isRefreshing = true;
 
@@ -936,10 +985,18 @@ async function loadData({ silent=false }={}) {
     const cols = resolveColumns(table);
     headerMap = cols;
 
-    // Filtre: garder les lignes valides (score numeric present)
+    // Filtre: garder les lignes valides (au moins 3 réponses numériques 1..10)
+    if (!cols.qCols || !cols.qCols.length) {
+      console.warn('Colonnes détectées:', table.headers);
+      throw new Error('Impossible de détecter les colonnes de questions (vérifier les en-têtes du CSV).');
+    }
     const data = table.data.filter(r => {
-      const v = num(r[cols.resp[0]]);
-      return v !== null && v >= 1 && v <= 10;
+      let c = 0;
+      for (const idx of cols.qCols) {
+        const v = num(r[idx]);
+        if (v !== null && v >= 1 && v <= 10) c++;
+      }
+      return c >= 3;
     });
 
     if (!data.length) throw new Error('Aucune donnee valide');
@@ -1000,11 +1057,11 @@ async function loadData({ silent=false }={}) {
 
 function startAutoRefresh() {
   if (refreshTimer) clearInterval(refreshTimer);
-  refreshTimer = setInterval(() => loadData({ silent:true }), REFRESH_INTERVAL_MS);
+  refreshTimer = setInterval(() => _loadData({ silent:true }), REFRESH_INTERVAL_MS);
 }
 
 function manualRefresh() {
-  loadData({ silent:true });
+  _loadData({ silent:true });
 }
 
 window.loadData = manualRefresh;
@@ -1015,7 +1072,7 @@ qs('#dateBadge').textContent = new Date().toLocaleDateString('fr-CA', {
   weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
 });
 
-loadData({ silent:false });
+_loadData({ silent:false });
 startAutoRefresh();
 </script>
 
