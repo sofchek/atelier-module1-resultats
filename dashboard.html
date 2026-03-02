@@ -3,10 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Tableau de bord  Stem </title>
-<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0"/>
-<meta http-equiv="Pragma" content="no-cache"/>
-<meta http-equiv="Expires" content="0"/>
+<title>Tableau de bord Stem</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
@@ -219,10 +216,12 @@ body::before {
 
 /* ── Comparison chart ── */
 .compare-rows { display: flex; flex-direction: column; gap: 20px; }
+.compare-row { }
 .compare-label {
   font-size: 12px; font-weight: 700; color: var(--text); margin-bottom: 8px;
   display: flex; justify-content: space-between; align-items: center;
 }
+.compare-label strong { color: var(--text); }
 .ecart-badge {
   font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px;
 }
@@ -248,35 +247,39 @@ body::before {
 }
 .footer-sync { display: flex; align-items: center; gap: 6px; }
 .sync-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+
+/* ── Animations ── */
+.main > * { opacity: 0; transform: translateY(16px); animation: fadeUp 0.5s ease forwards; }
+.main > *:nth-child(1) { animation-delay: 0.1s; }
+.main > *:nth-child(2) { animation-delay: 0.2s; }
+.main > *:nth-child(3) { animation-delay: 0.3s; }
+.main > *:nth-child(4) { animation-delay: 0.4s; }
+@keyframes fadeUp { to { opacity: 1; transform: none; } }
 </style>
 </head>
 <body>
 
-<!-- HEADER -->
 <div class="header">
   <div class="header-inner">
     <div class="header-title">Tableau de bord <span>Stem</span></div>
     <div class="header-meta">
       <div class="date-badge" id="dateBadge">—</div>
-      <button class="refresh-btn" onclick="loadData(false)">↻ Actualiser</button>
+      <button class="refresh-btn" onclick="loadData()">↻ Actualiser</button>
     </div>
   </div>
 </div>
 
-<!-- LOADING STATE -->
 <div class="state-msg" id="loadingState">
   <div class="loading-spinner"></div>
   <p>Chargement des données…</p>
 </div>
 
-<!-- ERROR STATE -->
 <div class="state-msg" id="errorState" style="display:none">
   <p style="font-size:24px;margin-bottom:12px">⚠️</p>
-  <p>Impossible de charger les données.<br>Vérifiez que le lien Google Sheet (CSV) est accessible et réessayez.</p>
-  <button class="refresh-btn" style="margin-top:20px" onclick="loadData(false)">Réessayer</button>
+  <p>Impossible de charger les données.<br>Vérifiez que le lien Zoho Sheet est accessible et réessayez.</p>
+  <button class="refresh-btn" style="margin-top:20px" onclick="loadData()">Réessayer</button>
 </div>
 
-<!-- FILTER BAR -->
 <div class="filter-bar" id="filterBar" style="display:none">
   <div class="filter-group">
     <label for="dateFilter">📅 Date :</label>
@@ -294,10 +297,8 @@ body::before {
   </div>
 </div>
 
-<!-- MAIN DASHBOARD -->
 <div class="main" id="dashboard" style="display:none">
 
-  <!-- KPI CARDS -->
   <div class="kpi-grid">
     <div class="kpi-card resp">
       <div class="kpi-label">Responsabilités</div>
@@ -358,7 +359,6 @@ body::before {
     </div>
   </div>
 
-  <!-- COMPARISON CHART -->
   <div class="chart-card full">
     <div class="card-title">
       <div class="card-title-dot" style="background:var(--navy)"></div>
@@ -367,7 +367,6 @@ body::before {
     <div class="compare-rows" id="compareRows"></div>
   </div>
 
-  <!-- PER QUESTION CHARTS -->
   <div class="chart-card">
     <div class="card-title">
       <div class="card-title-dot" style="background:var(--blue)"></div>
@@ -386,31 +385,18 @@ body::before {
 
 </div>
 
-<!-- FOOTER -->
 <div class="footer" id="footerBar" style="display:none">
   <div class="footer-sync">
-    <div class="sync-dot" id="syncDot"></div>
+    <div class="sync-dot"></div>
     <span id="lastSync">Données chargées</span>
   </div>
-  <span id="metaInfo">Formation Pratique en Gestion - Module 1</span>
+  <span>Formation Pratique en Gestion - Module 1</span>
 </div>
 
 <script>
-/* =======================
-   SOURCE DATA
-   ======================= */
-const GOOGLE_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYYRda3ViW1ibZtUDwlDxfDmXAcI56bPBlBn4V87WMc3EGGaVnD1_m49V3feWNugEDpwAW67tOy0aM/pub?gid=1485612999&single=true&output=csv";
+// 1. New .ca Zoho URL
+const BASE_ZOHO_URL = 'https://sheet.zohopublic.ca/sheet/publishedsheet/8c94a1f7fca85b99fae62b8c8f2d10b5ab1615f758ecae6728a23b9c8dbeb732?type=grid&download=csv';
 
-// If you want to switch back to Zoho later, replace with your Zoho published CSV.
-// const ZOHO_CSV_URL = "https://sheet.zohopublic.com/sheet/published/....?download=csv&sheetname=Feuille1";
-
-const CSV_URL = GOOGLE_CSV_URL;
-
-/* =======================
-   QUESTIONS + COLUMN INDEXES
-   NOTE: Your original dashboard relies on fixed column positions.
-   If your Google Sheet has different column order, you'll need to remap.
-   ======================= */
 const RESP_QUESTIONS = [
   '1. Définir les gains à atteindre',
   '2. Organiser le travail',
@@ -428,143 +414,53 @@ const DEFI_QUESTIONS = [
 
 const COL_RESP = [43, 44, 45, 46, 47];
 const COL_DEFI = [48, 49, 50, 51, 52];
-const COL_DATE = 55;  // "La réponse est terminée"
-const COL_POSTE = 5;  // "Poste"
+const COL_DATE = 55;
+const COL_POSTE = 5;
 const COL_GEO_RESP = 61;
 const COL_GEO_DEFI = 62;
 const COL_GEO_GLOB = 63;
 
 let allRows = [];
-let isLoading = false;
-
-/* =======================
-   HELPERS
-   ======================= */
-function setSync(ok, msg) {
-  document.getElementById('syncDot').style.background = ok ? 'var(--green)' : '#e53e3e';
-  document.getElementById('lastSync').textContent = msg;
-}
-
-function cacheBust(url) {
-  const sep = url.includes('?') ? '&' : '?';
-  return url + sep + '_t=' + Date.now();
-}
-
-async function fetchCSV(url) {
-  const res = await fetch(cacheBust(url), {
-    cache: 'no-store',
-    headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
-  });
-  if (!res.ok) throw new Error('HTTP ' + res.status);
-  return await res.text();
-}
 
 function parseCSV(text) {
-  // Robust parser: supports commas + quotes + newlines
-  const rows = [];
-  let row = [];
-  let cur = '';
-  let inQ = false;
-
-  for (let i = 0; i < text.length; i++) {
-    const ch = text[i];
-
-    if (ch === '"') {
-      if (inQ && text[i + 1] === '"') { cur += '"'; i++; }
-      else { inQ = !inQ; }
-      continue;
+  const lines = text.trim().split('\n');
+  if (lines.length < 2) return [];
+  return lines.slice(1).map(line => {
+    const cols = [];
+    let cur = '', inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') { inQ = !inQ; }
+      else if (ch === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
+      else cur += ch;
     }
-    if (!inQ && ch === ',') {
-      row.push(cur);
-      cur = '';
-      continue;
-    }
-    if (!inQ && ch === '\n') {
-      row.push(cur);
-      rows.push(row);
-      row = [];
-      cur = '';
-      continue;
-    }
-    if (ch !== '\r') cur += ch;
-  }
-  if (cur.length || row.length) {
-    row.push(cur);
-    rows.push(row);
-  }
-  if (rows.length < 2) return [];
-  return rows.slice(1).filter(r => {
-    if (r.length < 53) return false;
-    const val = num(r[COL_RESP[0]]);
-    return val !== null && val >= 1 && val <= 10;
+    cols.push(cur.trim());
+    return cols;
+  }).filter(r => {
+    if (r.length < 44) return false;
+    const val = parseFloat(r[43]);
+    return !isNaN(val) && val >= 1 && val <= 10;
   });
 }
 
-function num(val) {
-  const n = parseFloat(String(val ?? '').replace(',', '.'));
-  return isNaN(n) ? null : n;
-}
-function avg(arr) {
-  const valid = arr.filter(v => v !== null && v > 0);
-  if (!valid.length) return null;
-  return valid.reduce((a, b) => a + b, 0) / valid.length;
-}
-function geoMean(vals) {
-  const valid = vals.filter(v => v !== null && v > 0);
-  if (!valid.length) return null;
-  const logs = valid.map(v => Math.log(v / 10));
-  const meanLog = logs.reduce((a, b) => a + b, 0) / logs.length;
-  return Math.round((Math.exp(meanLog) * 100) * 10) / 10;
-}
-function pct(val) {
-  if (val === null) return '—';
-  return Math.round(val * 10) / 10 + '%';
-}
-
-// Handles multiple formats (Zoho French, ISO, dd/mm/yyyy, mm/dd/yyyy)
-function anyDateToISO(dateStr) {
+function zohoDateToISO(dateStr) {
   if (!dateStr) return null;
-  const s0 = String(dateStr).trim();
-  if (!s0) return null;
-
-  // ISO yyyy-mm-dd...
-  const iso = s0.match(/(\d{4})-(\d{2})-(\d{2})/);
-  if (iso) return iso[1] + '-' + iso[2] + '-' + iso[3];
-
-  // dd/mm/yyyy or dd-mm-yyyy
-  const dm = s0.match(/\b(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})\b/);
-  if (dm) {
-    const d = String(dm[1]).padStart(2,'0');
-    const m = String(dm[2]).padStart(2,'0');
-    const y = dm[3];
-    // ambiguity: if first number > 12, it's definitely day/month
-    // otherwise assume day/month (FR context)
-    return y + '-' + m + '-' + d;
-  }
-
-  // Zoho French: "11 févr. 2026, ..."
   const months = {
     'janv': '01', 'fevr': '02', 'mars': '03', 'avr': '04',
     'mai':  '05', 'juin': '06', 'juil': '07', 'aout': '08',
     'sept': '09', 'oct':  '10', 'nov':  '11', 'dec':  '12'
   };
-  const clean = s0.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  const clean = dateStr.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
   const m = clean.match(/(\d{1,2})\s+(\w+)\.?\s+(\d{4})/);
-  if (m) {
-    const mo = months[m[2].replace(/\./g,'')] || '00';
-    return m[3] + '-' + mo + '-' + String(m[1]).padStart(2,'0');
-  }
-
-  return null;
+  if (!m) return null;
+  const mo = months[m[2].replace(/\./g, '')] || '00';
+  return m[3] + '-' + mo + '-' + m[1].padStart(2, '0');
 }
 
-/* =======================
-   UI RENDER
-   ======================= */
 function populatePosteFilter() {
   const sel = document.getElementById('posteFilter');
-  const current = sel.value || 'all';
-  const postes = [...new Set(allRows.map(r => r[COL_POSTE]).filter(p => p && String(p).trim()))].sort((a,b)=>String(a).localeCompare(String(b)));
+  const current = sel.value;
+  const postes = [...new Set(allRows.map(r => r[COL_POSTE]).filter(p => p && p.trim()))].sort();
   sel.innerHTML = '<option value="all">Tous les postes</option>';
   postes.forEach(p => {
     const opt = document.createElement('option');
@@ -572,6 +468,37 @@ function populatePosteFilter() {
     if (p === current) opt.selected = true;
     sel.appendChild(opt);
   });
+}
+
+function num(val) {
+  const n = parseFloat(String(val).replace(',', '.'));
+  return isNaN(n) ? null : n;
+}
+
+function avg(arr) {
+  const valid = arr.filter(v => v !== null && v > 0);
+  if (!valid.length) return null;
+  return valid.reduce((a, b) => a + b, 0) / valid.length;
+}
+
+function geoMean(vals) {
+  const valid = vals.filter(v => v !== null && v > 0);
+  if (!valid.length) return null;
+  const n = valid.length;
+  let prod = 1;
+  for (const v of valid) prod *= (v / 10);
+  let y = 1;
+  for (let i = 0; i < 40; i++) {
+    let yp = 1;
+    for (let j = 0; j < n - 1; j++) yp *= y;
+    y = ((n - 1) * y + prod / yp) / n;
+  }
+  return Math.round(y * 1000) / 10;
+}
+
+function pct(val) {
+  if (val === null) return '—';
+  return Math.round(val * 10) / 10 + '%';
 }
 
 function renderBarRows(containerId, questions, avgScores, color) {
@@ -603,12 +530,16 @@ function renderCompare(sections) {
   el.innerHTML = '';
   sections.forEach(s => {
     const diff = s.arith !== null && s.geo !== null ? Math.round((s.arith - s.geo) * 10) / 10 : null;
+    const diffPositive = diff !== null && diff > 0;
+    const badgeStyle = diffPositive
+      ? 'background:#fde8e8;color:#c53030'
+      : 'background:#e8f5c0;color:#5a7a10';
     const row = document.createElement('div');
     row.className = 'compare-row';
     row.innerHTML = `
       <div class="compare-label">
         <strong>${s.label}</strong>
-        ${diff !== null ? `<span class="ecart-badge" style="background:rgba(0,33,105,0.08);color:var(--text)">Écart (Arith. − Géom.) : ${diff > 0 ? '+' : ''}${diff} pts</span>` : ''}
+        ${diff !== null ? `<span class="ecart-badge" style="${badgeStyle}">Écart : ${diffPositive ? '-' : '+'}${Math.abs(diff)}%</span>` : ''}
       </div>
       <div class="compare-tracks">
         <div class="compare-track">
@@ -635,12 +566,12 @@ function renderCompare(sections) {
   }, 150);
 }
 
-function _renderDashboardInternal() {
+function renderDashboard() {
   const dateVal = document.getElementById('dateFilter').value;
   const posteVal = document.getElementById('posteFilter').value;
 
   let rows = allRows;
-  if (dateVal) rows = rows.filter(r => anyDateToISO(r[COL_DATE]) === dateVal);
+  if (dateVal) rows = rows.filter(r => zohoDateToISO(r[COL_DATE]) === dateVal);
   if (posteVal !== 'all') rows = rows.filter(r => r[COL_POSTE] === posteVal);
 
   document.getElementById('countNum').textContent = rows.length;
@@ -658,7 +589,6 @@ function _renderDashboardInternal() {
   const respArith = avg(respAvgs.filter(v => v !== null));
   const defiArith = avg(defiAvgs.filter(v => v !== null));
   const globArith = avg([...respAvgs, ...defiAvgs].filter(v => v !== null));
-
   const respArithPct = respArith !== null ? respArith * 10 : null;
   const defiArithPct = defiArith !== null ? defiArith * 10 : null;
   const globArithPct = globArith !== null ? globArith * 10 : null;
@@ -688,89 +618,62 @@ function _renderDashboardInternal() {
 
   renderCompare([
     { label: 'Responsabilités', arith: respArithPct !== null ? Math.round(respArithPct * 10) / 10 : null, geo: respGeo !== null ? Math.round(respGeo * 10) / 10 : null, color: 'var(--blue)', colorGeo: '#1a5a9a' },
-    { label: 'Défis',          arith: defiArithPct !== null ? Math.round(defiArithPct * 10) / 10 : null, geo: defiGeo !== null ? Math.round(defiGeo * 10) / 10 : null, color: 'var(--green)', colorGeo: '#6a8a15' },
-    { label: 'Global',         arith: globArithPct !== null ? Math.round(globArithPct * 10) / 10 : null, geo: globGeo !== null ? Math.round(globGeo * 10) / 10 : null, color: 'var(--teal)', colorGeo: '#007a92' },
+    { label: 'Défis', arith: defiArithPct !== null ? Math.round(defiArithPct * 10) / 10 : null, geo: defiGeo !== null ? Math.round(defiGeo * 10) / 10 : null, color: 'var(--green)', colorGeo: '#6a8a15' },
+    { label: 'Global', arith: globArithPct !== null ? Math.round(globArithPct * 10) / 10 : null, geo: globGeo !== null ? Math.round(globGeo * 10) / 10 : null, color: 'var(--teal)', colorGeo: '#007a92' },
   ]);
 
   renderBarRows('barsResp', RESP_QUESTIONS, respAvgs, 'var(--blue)');
   renderBarRows('barsDefi', DEFI_QUESTIONS, defiAvgs, 'var(--green)');
 
   document.getElementById('dashboard').style.display = 'grid';
-  document.getElementById('filterBar').style.display = 'flex';
   document.getElementById('footerBar').style.display = 'flex';
+  document.getElementById('lastSync').textContent = 'Actualisé à ' + new Date().toLocaleTimeString('fr-CA');
 }
 
-function renderDashboard() { _renderDashboardInternal(); }
-
-/* =======================
-   LOAD (MANUAL ONLY)
-   ======================= */
-async function loadData(firstLoad=true) {
-  if (isLoading) return;
-  isLoading = true;
-
-  // Preserve current filter choices (do not reset them on refresh)
-  const prevDate = document.getElementById('dateFilter').value;
-  const prevPoste = document.getElementById('posteFilter').value;
-
-  // On first load, show spinner; on manual refresh, keep the dashboard visible
-  if (firstLoad) {
-    document.getElementById('loadingState').style.display = 'block';
-    document.getElementById('errorState').style.display = 'none';
-    document.getElementById('dashboard').style.display = 'none';
-    document.getElementById('filterBar').style.display = 'none';
-    document.getElementById('footerBar').style.display = 'none';
-  } else {
-    setSync(true, 'Synchronisation…');
-  }
+// 2. Updated Refresh Logic for .ca domain and cache control
+async function loadData() {
+  document.getElementById('loadingState').style.display = 'block';
+  document.getElementById('errorState').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('filterBar').style.display = 'none';
+  document.getElementById('footerBar').style.display = 'none';
 
   try {
-    const text = await fetchCSV(CSV_URL);
+    const finalUrl = 'https://corsproxy.io/?url=' + encodeURIComponent(BASE_ZOHO_URL + '&t=' + Date.now());
+    
+    const res = await fetch(finalUrl, { 
+        method: 'GET',
+        cache: 'no-store', 
+        headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+        }
+    });
+
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const text = await res.text();
     allRows = parseCSV(text);
-    if (allRows.length === 0) throw new Error('No data parsed');
-
-    // Populate poste dropdown but keep selection when possible
-    populatePosteFilter();
-    if (prevPoste && [...document.getElementById('posteFilter').options].some(o => o.value === prevPoste)) {
-      document.getElementById('posteFilter').value = prevPoste;
-    }
-
-    // Date default: only on very first load if empty
-    if (firstLoad && !prevDate) {
-      const now = new Date();
-      const todayISO = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
-      document.getElementById('dateFilter').value = todayISO;
-    } else if (prevDate) {
-      document.getElementById('dateFilter').value = prevDate;
-    }
+    
+    if (allRows.length === 0) throw new Error('No data');
 
     document.getElementById('loadingState').style.display = 'none';
-    document.getElementById('errorState').style.display = 'none';
     document.getElementById('filterBar').style.display = 'flex';
-    document.getElementById('footerBar').style.display = 'flex';
-
-    // Meta debug: show latest completed timestamp in the dataset
-    const dates = allRows.map(r => anyDateToISO(r[COL_DATE])).filter(Boolean).sort();
-    const latestDate = dates.length ? dates[dates.length - 1] : '—';
-    document.getElementById('metaInfo').textContent = `Source: Google CSV | Dernière date détectée: ${latestDate}`;
-
+    populatePosteFilter();
+    
+    const now = new Date();
+    const todayISO = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
+    document.getElementById('dateFilter').value = todayISO;
+    
     renderDashboard();
-    setSync(true, 'Actualisé à ' + new Date().toLocaleTimeString('fr-CA'));
   } catch (e) {
     console.error(e);
-    if (firstLoad) {
-      document.getElementById('loadingState').style.display = 'none';
-      document.getElementById('errorState').style.display = 'block';
-    } else {
-      setSync(false, 'Erreur de synchro (réessaie manuelle requise)');
-    }
-  } finally {
-    isLoading = false;
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('errorState').style.display = 'block';
   }
 }
 
 document.getElementById('dateBadge').textContent = new Date().toLocaleDateString('fr-CA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-loadData(true);
+loadData();
 </script>
 </body>
 </html>
