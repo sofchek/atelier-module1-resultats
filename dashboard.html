@@ -780,6 +780,8 @@ function processCSVFile(file) {
     allRows = rows;
     showUploadStatus('✓ ' + rows.length + ' participant' + (rows.length>1?'s':'') + ' chargé' + (rows.length>1?'s':'') + ' depuis le fichier CSV', true);
     document.getElementById('filterBar').style.display = 'flex';
+    document.getElementById('dashboard').style.display = 'grid';
+    document.getElementById('footerBar').style.display = 'flex';
     document.getElementById('errorState').style.display = 'none';
     document.getElementById('loadingState').style.display = 'none';
     populatePosteFilter();
