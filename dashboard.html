@@ -476,13 +476,10 @@ body::before {
             <th style="text-align:left;padding:8px 12px;background:#f5f7fa;font-weight:600;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:#1d71b8;">Participant</th>
             <th style="text-align:left;padding:8px 12px;background:#f5f7fa;font-weight:600;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:#1d71b8;">Pharmacie</th>
             <th style="text-align:left;padding:8px 12px;background:#f5f7fa;font-weight:600;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:#1d71b8;">Poste</th>
-            <th style="text-align:left;padding:8px 12px;background:#f5f7fa;font-weight:600;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:#1d71b8;white-space:normal;min-width:72px;">Date<br>de l'atelier</th>
-            <th style="text-align:left;padding:8px 12px;background:#f5f7fa;font-weight:600;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:#1d71b8;white-space:normal;min-width:72px;">Date<br>soumise</th>
-            <th style="text-align:left;padding:8px 12px;background:#f5f7fa;font-weight:600;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:#1d71b8;white-space:normal;min-width:72px;">Respon-<br>sabilités</th>
+            <th style="text-align:left;padding:8px 12px;background:#f5f7fa;font-weight:600;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:#1d71b8;">Responsabilités</th>
             <th style="text-align:left;padding:8px 12px;background:#f5f7fa;font-weight:600;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:#1d71b8;">Défis</th>
             <th style="text-align:left;padding:8px 12px;background:#f5f7fa;font-weight:600;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:#1d71b8;">Total</th>
-            <th style="text-align:left;padding:8px 12px;background:#f5f7fa;font-weight:600;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:#1d71b8;">%<br>Arith.</th>
-            <th style="text-align:left;padding:8px 12px;background:#f5f7fa;font-weight:600;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:#1d71b8;">%<br>Géo.</th>
+            <th style="text-align:left;padding:8px 12px;background:#f5f7fa;font-weight:600;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:#1d71b8;">%</th>
             <th style="text-align:left;padding:8px 12px;background:#f5f7fa;font-weight:600;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:#1d71b8;">Résultats</th>
           </tr>
         </thead>
@@ -717,9 +714,11 @@ function renderDashboard() {
   document.getElementById('lastSync').textContent = 'Actualisé à ' + new Date().toLocaleTimeString('fr-CA');
 
   populateParticipantSelect();
-  const sel = document.getElementById('m1SearchInput');
-  if (sel) sel.value = '';
   renderTableM1();
+
+  // Reset dropdown to default on each full render (e.g. Actualiser)
+  const sel = document.getElementById('m1SearchInput');
+  if (sel) { sel.value = ''; renderTableM1(); }
 }
 
 // ── DATA LOADING ──
@@ -780,18 +779,11 @@ function processCSVFile(file) {
     allRows = rows;
     showUploadStatus('✓ ' + rows.length + ' participant' + (rows.length>1?'s':'') + ' chargé' + (rows.length>1?'s':'') + ' depuis le fichier CSV', true);
     document.getElementById('filterBar').style.display = 'flex';
-    document.getElementById('dashboard').style.display = 'grid';
-    document.getElementById('footerBar').style.display = 'flex';
     document.getElementById('errorState').style.display = 'none';
     document.getElementById('loadingState').style.display = 'none';
     populatePosteFilter();
-    // Sélectionner la date la plus récente présente dans le fichier
     const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
-    const datesInFile = allRows
-      .map(r => zohoDateToISO(r[COL_DATE]))
-      .filter(Boolean);
-    const mostRecent = datesInFile.sort().pop();
-    document.getElementById('dateFilter').value = mostRecent || today;
+    document.getElementById('dateFilter').value = today;
     renderDashboard();
   };
   reader.readAsText(file, 'UTF-8');
@@ -816,8 +808,6 @@ const COL_PRENOM   = 0;
 const COL_NOM      = 1;
 const COL_PHARMACIE = 6;
 const COL_DEPT     = 4;
-const COL_DATE_ATELIER  = 3;   // "Date du Workshop" (col D)
-const COL_DATE_SOUMISE  = 55;  // "La réponse est terminée" (col BD)
 // COL_POSTE = 5, COL_DATE = 55 already defined above
 // COL_RESP = [43,44,45,46,47] → a,d,e,c,b
 // COL_DEFI = [48,49,50,51,52] → k,l,m,n,o
@@ -886,16 +876,11 @@ function renderTableM1() {
     : allRows.filter(r => ((r[COL_PRENOM]||'') + ' ' + (r[COL_NOM]||'')).trim() === sel);
 
   filtered.forEach(r => {
-    const name         = ((r[COL_PRENOM]||'') + ' ' + (r[COL_NOM]||'')).trim();
-    const company      = r[COL_PHARMACIE]      || '';
-    const dept         = r[COL_DEPT]           || '';
-    const poste        = r[COL_POSTE]          || '';
-    const date         = r[COL_DATE]           || '';
-    const dateAtelier  = r[COL_DATE_ATELIER]   || '';
-    const dateSoumise  = r[COL_DATE_SOUMISE]   || '';
-
-    // Formatter date soumise : garder seulement la partie date (avant la virgule)
-    const dateSoumiseCourte = dateSoumise.split(',')[0].trim();
+    const name    = ((r[COL_PRENOM]||'') + ' ' + (r[COL_NOM]||'')).trim();
+    const company = r[COL_PHARMACIE] || '';
+    const dept    = r[COL_DEPT]      || '';
+    const poste   = r[COL_POSTE]     || '';
+    const date    = r[COL_DATE]      || '';
 
     // Scores individuels
     const [a,d,e,c,b] = COL_RESP.map(ci => num(r[ci]) || 0);
@@ -906,11 +891,6 @@ function renderTableM1() {
     const respPct   = Math.round(respTotal/50*100);
     const defiPct   = Math.round(defiTotal/50*100);
     const globPct   = Math.round(globTotal/100*100);
-
-    // Moyenne géométrique globale individuelle
-    const allScores = [a,d,e,c,b,k,l,m,n,o];
-    const globGeoVal = geoMean(allScores);
-    const globGeoPct = globGeoVal !== null ? Math.round(globGeoVal) : '—';
 
     const resultURL = RESULT_PAGE_URL_M1
       + '?prenom=' + encodeURIComponent((r[COL_PRENOM]||''))
@@ -927,16 +907,13 @@ function renderTableM1() {
     const tr = document.createElement('tr');
     tr.style.borderBottom = '1px solid #f0f2f7';
     tr.innerHTML = ''
-      + '<td style="padding:14px 12px;font-weight:600;">' + name + '</td>'
+      + '<td class="m1-td-name" style="padding:14px 12px;">' + name + '</td>'
       + '<td style="padding:14px 12px;">' + company + '</td>'
       + '<td style="padding:14px 12px;">' + poste + '</td>'
-      + '<td style="padding:14px 12px;font-size:12px;color:#555;">' + dateAtelier + '</td>'
-      + '<td style="padding:14px 12px;font-size:12px;color:#555;">' + dateSoumiseCourte + '</td>'
       + '<td style="padding:14px 12px;font-family:\'Playfair Display\',serif;font-size:16px;font-weight:700;color:var(--blue)">' + respTotal + '<span style="font-size:11px;color:#aaa;font-family:\'DM Sans\',sans-serif;">/50</span></td>'
       + '<td style="padding:14px 12px;font-family:\'Playfair Display\',serif;font-size:16px;font-weight:700;color:var(--green)">' + defiTotal + '<span style="font-size:11px;color:#aaa;font-family:\'DM Sans\',sans-serif;">/50</span></td>'
       + '<td style="padding:14px 12px;font-family:\'Playfair Display\',serif;font-size:17px;font-weight:700;color:' + globColor + '">' + globTotal + '<span style="font-size:11px;color:#aaa;font-family:\'DM Sans\',sans-serif;">/100</span></td>'
       + '<td style="padding:14px 12px;font-size:12px;color:#888;">' + globPct + '%</td>'
-      + '<td style="padding:14px 12px;font-size:12px;color:#888;">' + globGeoPct + '%</td>'
       + '<td style="padding:14px 12px;"><a href="' + resultURL + '" target="_blank" style="font-size:11px;color:var(--blue);text-decoration:none;padding:5px 10px;background:#d0e4f5;border-radius:6px;white-space:nowrap;display:inline-block;">Voir résultats ↗</a></td>';
     tbody.appendChild(tr);
   });
