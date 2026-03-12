@@ -145,6 +145,12 @@ body::before {
 .kpi-card.defi { border-color: var(--green); }
 .kpi-card.glob { border-color: var(--teal); }
 
+.kpi-label {
+  font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+  font-weight: 700; color: var(--text-soft); margin-bottom: 12px;
+}
+.kpi-row { display: flex; align-items: flex-end; gap: 16px; }
+.kpi-block { flex: 1; text-align: center; }
 .kpi-num {
   font-family: 'Playfair Display', serif;
   font-size: 38px; font-weight: 900; line-height: 1;
@@ -152,6 +158,17 @@ body::before {
 .kpi-card.resp .kpi-num { color: var(--blue); }
 .kpi-card.defi .kpi-num { color: var(--green); }
 .kpi-card.glob .kpi-num { color: var(--teal); }
+.kpi-sub { font-size: 11px; color: var(--text-soft); margin-top: 4px; font-weight: 500; }
+
+.kpi-vs {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 4px; padding-bottom: 6px;
+}
+.kpi-vs-line { width: 1px; height: 30px; background: var(--cream-dark); }
+.kpi-vs-label {
+  font-size: 9px; text-transform: uppercase; letter-spacing: .1em;
+  color: var(--text-soft); font-weight: 600;
+}
 
 .geo-badge {
   display: inline-block;
@@ -164,6 +181,11 @@ body::before {
 .kpi-card.glob .geo-badge { background: #d0eef3; color: var(--teal); }
 
 /* ── Chart sections ── */
+.chart-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+}
+@media(max-width:720px){ .chart-grid { grid-template-columns: 1fr; } }
+
 .chart-card {
   background: var(--white); border-radius: 16px;
   padding: 24px; box-shadow: var(--shadow);
@@ -184,17 +206,113 @@ body::before {
   grid-template-columns: 28px 1fr 140px 42px;
   align-items: center; gap: 10px;
 }
+.bar-qnum { font-size: 11px; font-weight: 700; color: var(--text-soft); text-align: right; }
+.bar-qname { font-size: 12px; color: var(--text); line-height: 1.3; }
 .bar-track { height: 8px; background: var(--cream-dark); border-radius: 4px; overflow: hidden; }
 .bar-fill { height: 100%; border-radius: 4px; transition: width 0.9s cubic-bezier(.4,0,.2,1); }
+.bar-score { font-size: 13px; font-weight: 700; text-align: right; }
+.bar-row.low .bar-fill { background: #e53e3e !important; }
+.bar-row.low .bar-score { color: #e53e3e; }
 
 /* ── Comparison chart ── */
 .compare-rows { display: flex; flex-direction: column; gap: 20px; }
+.compare-row { }
+.compare-label {
+  font-size: 12px; font-weight: 700; color: var(--text); margin-bottom: 8px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.compare-label strong { color: var(--text); }
+.ecart-badge {
+  font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px;
+}
+.compare-tracks { display: flex; flex-direction: column; gap: 6px; }
+.compare-track { display: flex; align-items: center; gap: 10px; }
+.compare-track-label {
+  font-size: 11px; font-weight: 700; width: 44px; text-align: right;
+  text-transform: uppercase; letter-spacing: .06em;
+}
 .compare-bar-wrap { flex: 1; height: 22px; background: var(--cream-dark); border-radius: 6px; overflow: hidden; }
 .compare-bar {
   height: 100%; border-radius: 6px;
   display: flex; align-items: center; justify-content: flex-end; padding-right: 8px;
   transition: width 1s cubic-bezier(.4,0,.2,1);
 }
+.compare-bar-val { font-size: 11px; font-weight: 700; color: white; }
+
+/* ── Section urgence CSV ── */
+.emergency-section {
+  max-width: 1100px; margin: 40px auto 0; padding: 0 24px;
+}
+.emergency-card {
+  background: var(--white); border-radius: 16px; padding: 28px 32px;
+  box-shadow: var(--shadow); border-left: 5px solid var(--yellow);
+}
+.emergency-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 16px; font-weight: 700; color: var(--navy);
+  margin-bottom: 6px; display: flex; align-items: center; gap: 8px;
+}
+.emergency-subtitle {
+  font-size: 12px; color: var(--text-soft); margin-bottom: 20px;
+}
+.emergency-steps {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+}
+@media(max-width:700px){ .emergency-steps { grid-template-columns: 1fr; } }
+
+.estep {
+  background: var(--cream); border-radius: 10px; padding: 16px 18px;
+  display: flex; align-items: flex-start; gap: 14px;
+}
+.estep-num {
+  background: var(--navy); color: var(--white);
+  width: 26px; height: 26px; border-radius: 50%;
+  font-size: 12px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.estep-content { flex: 1; }
+.estep-label { font-size: 12px; font-weight: 700; color: var(--navy); margin-bottom: 6px; }
+.estep-desc { font-size: 11px; color: var(--text-soft); line-height: 1.5; }
+
+.csv-link-input {
+  width: 100%; padding: 8px 12px; margin-top: 6px;
+  border: 2px solid var(--navy-light); border-radius: 8px;
+  font-size: 11px; font-family: monospace; color: var(--text);
+  background: var(--white); outline: none;
+}
+.csv-link-input:focus { border-color: var(--blue); }
+
+.download-btn {
+  display: inline-block; margin-top: 8px;
+  background: var(--navy); color: var(--white);
+  border: none; border-radius: 8px; padding: 7px 14px;
+  font-size: 12px; font-weight: 700; cursor: pointer;
+  font-family: 'DM Sans', sans-serif; text-decoration: none;
+  transition: background 0.2s;
+}
+.download-btn:hover { background: var(--navy-soft); }
+
+.upload-drop {
+  border: 2px dashed var(--navy-light); border-radius: 10px;
+  padding: 18px; text-align: center; cursor: pointer;
+  transition: all 0.2s; background: var(--white); margin-top: 6px;
+}
+.upload-drop:hover, .upload-drop.drag-over {
+  border-color: var(--blue); background: #f0f4ff;
+}
+.upload-drop p { font-size: 12px; color: var(--text-soft); margin-bottom: 8px; }
+.upload-drop-btn {
+  background: var(--blue); color: var(--white);
+  border: none; border-radius: 6px; padding: 6px 14px;
+  font-size: 12px; font-weight: 700; cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+}
+.upload-status {
+  font-size: 12px; font-weight: 600; padding: 6px 12px;
+  border-radius: 6px; margin-top: 8px; display: none; text-align: center;
+}
+.upload-status.ok  { background: #e8f5c0; color: #3a5a00; display: block; }
+.upload-status.err { background: #fde8e8; color: #8b1a1a; display: block; }
 
 /* ── Footer ── */
 .footer {
@@ -205,6 +323,12 @@ body::before {
 .footer-sync { display: flex; align-items: center; gap: 6px; }
 .sync-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
 
+/* ── Animations ── */
+.main > * { opacity: 0; transform: translateY(16px); animation: fadeUp 0.5s ease forwards; }
+.main > *:nth-child(1) { animation-delay: 0.1s; }
+.main > *:nth-child(2) { animation-delay: 0.2s; }
+.main > *:nth-child(3) { animation-delay: 0.3s; }
+.main > *:nth-child(4) { animation-delay: 0.4s; }
 @keyframes fadeUp { to { opacity: 1; transform: none; } }
 </style>
 </head>
@@ -220,14 +344,15 @@ body::before {
   </div>
 </div>
 
-<div id="loadingState" class="state-msg" style="display:none">
+<div class="state-msg" id="loadingState">
   <div class="loading-spinner"></div>
-  <p>Chargement des données en temps réel…</p>
+  <p>Chargement des données…</p>
 </div>
 
-<div id="errorState" class="state-msg" style="display:none">
+<div class="state-msg" id="errorState" style="display:none">
   <p style="font-size:24px;margin-bottom:12px">⚠️</p>
-  <p>Échec du téléchargement.<br>Vérifiez votre connexion ou cliquez sur Actualiser.</p>
+  <p>Impossible de charger les données.<br>Vérifiez que le lien Zoho Sheet est accessible et réessayez.</p>
+  <button class="refresh-btn" style="margin-top:20px" onclick="loadData()">Réessayer</button>
 </div>
 
 <div class="filter-bar" id="filterBar" style="display:none">
@@ -247,217 +372,439 @@ body::before {
   </div>
 </div>
 
-<div id="noDataMsg" style="display:none; max-width:1100px; margin:32px auto; padding:0 20px;">
-  <div style="background:#fff; border-radius:14px; padding:40px; box-shadow:var(--shadow); text-align:center; border-left:4px solid var(--yellow);">
-    <div style="font-family:'Playfair Display',serif; font-size:20px; font-weight:700; color:var(--navy); margin-bottom:10px;">Aucune donnée pour cette date</div>
-    <div style="font-size:14px; color:#666; line-height:1.5;">Modifiez le filtre de date ci-dessus pour afficher les résultats d'une autre journée,<br>ou effacez la date pour voir tous les participants.</div>
-  </div>
-</div>
-
 <div class="main" id="dashboard" style="display:none">
 
   <div class="kpi-grid">
     <div class="kpi-card resp">
-      <div style="font-size:11px; font-weight:700; color:var(--text-soft); margin-bottom:12px; text-transform:uppercase;">Responsabilités</div>
-      <div style="display:flex; align-items:flex-end; gap:16px;">
-        <div style="flex:1; text-align:center;">
-          <div class="kpi-num" id="kpiRespArith" style="color:var(--blue)">—</div>
-          <div style="font-size:11px; color:var(--text-soft);">Moy. arithmétique %</div>
+      <div class="kpi-label">Responsabilités</div>
+      <div class="kpi-row">
+        <div class="kpi-block">
+          <div class="kpi-num" id="kpiRespArith">—</div>
+          <div class="kpi-sub">Moy. arithmétique %</div>
         </div>
-        <div style="flex:1; text-align:center;">
-          <div class="kpi-num" id="kpiRespGeo" style="color:var(--teal)">—</div>
-          <div style="font-size:11px; color:var(--text-soft);">Moy. géométrique %</div>
+        <div class="kpi-vs">
+          <div class="kpi-vs-line"></div>
+          <div class="kpi-vs-label">VS</div>
+          <div class="kpi-vs-line"></div>
+        </div>
+        <div class="kpi-block">
+          <div class="geo-badge">Géom.</div>
+          <div class="kpi-num" id="kpiRespGeo">—</div>
+          <div class="kpi-sub">Moy. géométrique %</div>
         </div>
       </div>
     </div>
     <div class="kpi-card defi">
-      <div style="font-size:11px; font-weight:700; color:var(--text-soft); margin-bottom:12px; text-transform:uppercase;">Défis</div>
-      <div style="display:flex; align-items:flex-end; gap:16px;">
-        <div style="flex:1; text-align:center;">
-          <div class="kpi-num" id="kpiDefiArith" style="color:var(--green)">—</div>
-          <div style="font-size:11px; color:var(--text-soft);">Moy. arithmétique %</div>
+      <div class="kpi-label">Défis</div>
+      <div class="kpi-row">
+        <div class="kpi-block">
+          <div class="kpi-num" id="kpiDefiArith">—</div>
+          <div class="kpi-sub">Moy. arithmétique %</div>
         </div>
-        <div style="flex:1; text-align:center;">
-          <div class="kpi-num" id="kpiDefiGeo" style="color:var(--teal)">—</div>
-          <div style="font-size:11px; color:var(--text-soft);">Moy. géométrique %</div>
+        <div class="kpi-vs">
+          <div class="kpi-vs-line"></div>
+          <div class="kpi-vs-label">VS</div>
+          <div class="kpi-vs-line"></div>
+        </div>
+        <div class="kpi-block">
+          <div class="geo-badge">Géom.</div>
+          <div class="kpi-num" id="kpiDefiGeo">—</div>
+          <div class="kpi-sub">Moy. géométrique %</div>
         </div>
       </div>
     </div>
     <div class="kpi-card glob">
-      <div style="font-size:11px; font-weight:700; color:var(--text-soft); margin-bottom:12px; text-transform:uppercase;">Global</div>
-      <div style="display:flex; align-items:flex-end; gap:16px;">
-        <div style="flex:1; text-align:center;">
-          <div class="kpi-num" id="kpiGlobArith" style="color:var(--teal)">—</div>
-          <div style="font-size:11px; color:var(--text-soft);">Moy. arithmétique %</div>
+      <div class="kpi-label">Global</div>
+      <div class="kpi-row">
+        <div class="kpi-block">
+          <div class="kpi-num" id="kpiGlobArith">—</div>
+          <div class="kpi-sub">Moy. arithmétique %</div>
         </div>
-        <div style="flex:1; text-align:center;">
-          <div class="kpi-num" id="kpiGlobGeo" style="color:var(--teal)">—</div>
-          <div style="font-size:11px; color:var(--text-soft);">Moy. géométrique %</div>
+        <div class="kpi-vs">
+          <div class="kpi-vs-line"></div>
+          <div class="kpi-vs-label">VS</div>
+          <div class="kpi-vs-line"></div>
+        </div>
+        <div class="kpi-block">
+          <div class="geo-badge">Géom.</div>
+          <div class="kpi-num" id="kpiGlobGeo">—</div>
+          <div class="kpi-sub">Moy. géométrique %</div>
         </div>
       </div>
     </div>
   </div>
 
   <div class="chart-card full">
-    <div class="card-title"><div class="card-title-dot" style="background:var(--navy)"></div>Arithmétique vs Géométrique</div>
+    <div class="card-title">
+      <div class="card-title-dot" style="background:var(--navy)"></div>
+      Arithmétique vs Géométrique
+    </div>
     <div class="compare-rows" id="compareRows"></div>
   </div>
 
   <div class="chart-card">
-    <div class="card-title"><div class="card-title-dot" style="background:var(--blue)"></div>Responsabilités</div>
+    <div class="card-title">
+      <div class="card-title-dot" style="background:var(--blue)"></div>
+      <span style="color:var(--blue)">Responsabilités</span> - Moyenne par question
+    </div>
     <div class="bar-rows" id="barsResp"></div>
   </div>
 
   <div class="chart-card">
-    <div class="card-title"><div class="card-title-dot" style="background:var(--green)"></div>Défis</div>
+    <div class="card-title">
+      <div class="card-title-dot" style="background:var(--green)"></div>
+      <span style="color:var(--green)">Défis</span> - Moyenne par question
+    </div>
     <div class="bar-rows" id="barsDefi"></div>
   </div>
 
 </div>
 
 <div class="footer" id="footerBar" style="display:none">
-  <div class="footer-sync"><div class="sync-dot"></div><span id="lastSync">Données chargées</span></div>
+  <div class="footer-sync">
+    <div class="sync-dot"></div>
+    <span id="lastSync">Données chargées</span>
+  </div>
   <span>Formation Pratique en Gestion - Module 1</span>
 </div>
 
 <script>
+// CONFIGURATION
 const BASE_ZOHO_URL = 'https://sheet.zohopublic.com/sheet/published/w183q3cdc79a4595b490cb7eec15a24227ccf?download=csv&sheetname=Feuille1';
 
 const PROXIES = [
-  url => 'https://corsproxy.io/?url=' + encodeURIComponent(url),
   url => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url),
-  url => 'https://thingproxy.freeboard.io/fetch/' + url
+  url => 'https://corsproxy.io/?url='           + encodeURIComponent(url),
+  url => 'https://thingproxy.freeboard.io/fetch/' + url,
 ];
+
+async function fetchCSVFromProxy() {
+  const urlWithBust = BASE_ZOHO_URL + '&_t=' + Date.now();
+  for (const proxy of PROXIES) {
+    try {
+      const res = await fetch(proxy(urlWithBust), { cache: 'no-store' });
+      if (!res.ok) continue;
+      const text = await res.text();
+      if (text && text.length > 100) return text;
+    } catch(e) { continue; }
+  }
+  return null;
+}
+
+const RESP_QUESTIONS = ['1. Définir les gains à atteindre','2. Organiser le travail','3. Communiquer / Mobiliser','4. Mesurer au fur et à mesure','5. Développer son personnel'];
+const DEFI_QUESTIONS = ['1. Exercer son leadership','2. Organisation optimale','3. Maîtriser la communication','4. Travail d\'équipe','5. Gestion rigoureuse'];
 
 const COL_RESP = [43, 44, 45, 46, 47];
 const COL_DEFI = [48, 49, 50, 51, 52];
 const COL_DATE = 55;
 const COL_POSTE = 5;
+const COL_GEO_RESP = 61;
+const COL_GEO_DEFI = 62;
+const COL_GEO_GLOB = 63;
 
 let allRows = [];
 
-async function fetchCSVFromProxy() {
-  const urlWithBust = BASE_ZOHO_URL + '&t=' + Date.now();
-  for (const proxy of PROXIES) {
-    try {
-      const res = await fetch(proxy(urlWithBust), { cache: 'no-store' });
-      if (res.ok) {
-        const text = await res.text();
-        if (text && text.length > 100) return text;
-      }
-    } catch(e) {}
-  }
-  return null;
-}
+// ── FONCTIONS DE PARSAGE ──
 
 function parseCSV(text) {
   const lines = text.trim().split('\n');
   if (lines.length < 2) return [];
   return lines.slice(1).map(line => {
-    const cols = []; let cur = '', inQ = false;
+    const cols = [];
+    let cur = '', inQ = false;
     for (let i = 0; i < line.length; i++) {
       const ch = line[i];
-      if (ch === '"') inQ = !inQ;
+      if (ch === '"') { inQ = !inQ; }
       else if (ch === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
       else cur += ch;
     }
-    cols.push(cur.trim()); return cols;
+    cols.push(cur.trim());
+    return cols;
   }).filter(r => r.length > 50);
 }
 
+/**
+ * Convertit "02 mars 2026, 14 h 30" -> "2026-03-02"
+ * Adapté au Eastern Time (Montréal)
+ */
 function zohoDateToISO(dateStr) {
   if (!dateStr) return null;
-  const months = {'janv':'01','fevr':'02','mars':'03','avr':'04','mai':'05','juin':'06','juil':'07','aout':'08','sept':'09','oct':'10','nov':'11','dec':'12'};
-  const clean = dateStr.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  const months = {
+    'janv': '01', 'fevr': '02', 'mars': '03', 'avr': '04',
+    'mai':  '05', 'juin': '06', 'juil': '07', 'aout': '08',
+    'sept': '09', 'oct':  '10', 'nov':  '11', 'dec':  '12'
+  };
+  
+  // Nettoyage : enlever accents et mettre en minuscule
+  const clean = dateStr.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  
+  // Regex pour capturer Jour, Mois, Année
   const m = clean.match(/(\d{1,2})\s+([a-z]+)\.?\s+(\d{4})/);
   if (!m) return null;
-  return `${m[3]}-${months[m[2].substring(0,4)] || '01'}-${m[1].padStart(2, '0')}`;
+  
+  const day = m[1].padStart(2, '0');
+  const monthKey = m[2].substring(0, 4); // Prend les 4 premières lettres pour correspondre au dictionnaire
+  const month = months[monthKey] || '01';
+  const year = m[3];
+  
+  return `${year}-${month}-${day}`;
 }
 
-function num(v){ const n = parseFloat(String(v).replace(',','.')); return isNaN(n) ? 0 : n; }
-function avg(arr){ const v = arr.filter(x => x > 0); return v.length ? v.reduce((a,b)=>a+b,0)/v.length : 0; }
-function geoMean(arr){ 
-  const v = arr.filter(x => x > 0).map(x => x === 0 ? 0.1 : x);
-  return v.length ? Math.pow(v.reduce((a,b)=>a*b,1), 1/v.length)*10 : 0; 
+// ── FONCTIONS DE CALCUL ──
+
+function num(val) {
+  const n = parseFloat(String(val).replace(',', '.'));
+  return isNaN(n) ? null : n;
+}
+
+function avg(arr) {
+  const valid = arr.filter(v => v !== null && v > 0);
+  return valid.length ? valid.reduce((a, b) => a + b, 0) / valid.length : null;
+}
+
+function geoMean(vals) {
+  const valid = vals.filter(v => v !== null && v > 0);
+  if (!valid.length) return null;
+  const n = valid.length;
+  let prod = 1;
+  for (const v of valid) prod *= (v / 10);
+  let y = 1;
+  for (let i = 0; i < 40; i++) {
+    let yp = 1;
+    for (let j = 0; j < n - 1; j++) yp *= y;
+    y = ((n - 1) * y + prod / yp) / n;
+  }
+  return Math.round(y * 1000) / 10;
+}
+
+// ── UI RENDERING ──
+
+function populatePosteFilter() {
+  const sel = document.getElementById('posteFilter');
+  const current = sel.value;
+  const postes = [...new Set(allRows.map(r => r[COL_POSTE]).filter(p => p && p.trim()))].sort();
+  sel.innerHTML = '<option value="all">Tous les postes</option>';
+  postes.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p; opt.textContent = p;
+    if (p === current) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+function renderBarRows(containerId, questions, avgScores, color) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = '';
+  questions.forEach((q, i) => {
+    const v = avgScores[i];
+    if (v === null) return;
+    const low = v <= 5;
+    const p = (v / 10) * 100;
+    const row = document.createElement('div');
+    row.className = 'bar-row' + (low ? ' low' : '');
+    row.innerHTML = `
+      <div class="bar-qnum">${i + 1}.</div>
+      <div class="bar-qname">${q.replace(/^\d+\.\s/, '')}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:0%;background:${low ? '#e53e3e' : color}" data-pct="${p}"></div></div>
+      <div class="bar-score" style="color:${low ? '#e53e3e' : color}">${Math.round(v * 10) / 10}</div>`;
+    el.appendChild(row);
+  });
+  setTimeout(() => el.querySelectorAll('.bar-fill').forEach(b => b.style.width = b.dataset.pct + '%'), 100);
+}
+
+function renderCompare(sections) {
+  const el = document.getElementById('compareRows');
+  el.innerHTML = '';
+  sections.forEach(s => {
+    const diff = (s.arith !== null && s.geo !== null) ? Math.round((s.arith - s.geo) * 10) / 10 : null;
+    const badgeStyle = (diff !== null && diff > 0) ? 'background:#fde8e8;color:#c53030' : 'background:#e8f5c0;color:#5a7a10';
+    const row = document.createElement('div');
+    row.className = 'compare-row';
+    row.innerHTML = `
+      <div class="compare-label"><strong>${s.label}</strong>${diff !== null ? `<span class="ecart-badge" style="${badgeStyle}">Écart : ${diff > 0 ? '-' : '+'}${Math.abs(diff)}%</span>` : ''}</div>
+      <div class="compare-tracks">
+        <div class="compare-track"><div class="compare-track-label" style="color:${s.color}">Arith.</div><div class="compare-bar-wrap"><div class="compare-bar" style="width:0%;background:${s.color}" data-pct="${s.arith || 0}"><span class="compare-bar-val">${Math.round(s.arith * 10) / 10}%</span></div></div></div>
+        <div class="compare-track"><div class="compare-track-label" style="color:${s.colorGeo}">Géom.</div><div class="compare-bar-wrap"><div class="compare-bar" style="width:0%;background:${s.colorGeo}" data-pct="${s.geo || 0}"><span class="compare-bar-val">${Math.round(s.geo * 10) / 10}%</span></div></div></div>
+      </div>`;
+    el.appendChild(row);
+  });
+  setTimeout(() => el.querySelectorAll('.compare-bar').forEach(b => b.style.width = b.dataset.pct + '%'), 150);
 }
 
 function renderDashboard() {
   const dateVal = document.getElementById('dateFilter').value;
   const posteVal = document.getElementById('posteFilter').value;
 
-  const rows = allRows.filter(r => {
+  let rows = allRows.filter(r => {
     const isoDate = zohoDateToISO(r[COL_DATE]);
-    return (!dateVal || isoDate === dateVal) && (posteVal === 'all' || r[COL_POSTE] === posteVal);
+    const matchesDate = !dateVal || isoDate === dateVal;
+    const matchesPoste = posteVal === 'all' || r[COL_POSTE] === posteVal;
+    return matchesDate && matchesPoste;
   });
 
   document.getElementById('countNum').textContent = rows.length;
-  document.getElementById('filterBar').style.display = 'flex';
-  document.getElementById('footerBar').style.display = 'flex';
 
   if (rows.length === 0) {
     document.getElementById('dashboard').style.display = 'none';
-    document.getElementById('noDataMsg').style.display = 'block';
+    document.getElementById('filterBar').style.display = 'flex';
+    document.getElementById('footerBar').style.display = 'flex';
     return;
   }
 
-  document.getElementById('noDataMsg').style.display = 'none';
+  const respAvgs = COL_RESP.map(ci => avg(rows.map(r => num(r[ci]))));
+  const defiAvgs = COL_DEFI.map(ci => avg(rows.map(r => num(r[ci]))));
+
+  const respArithPct = avg(respAvgs.filter(v => v !== null)) * 10;
+  const defiArithPct = avg(defiAvgs.filter(v => v !== null)) * 10;
+  const globArithPct = avg([...respAvgs, ...defiAvgs].filter(v => v !== null)) * 10;
+
+  const respGeo = avg(rows.map(r => geoMean(COL_RESP.map(ci => num(r[ci])))));
+  const defiGeo = avg(rows.map(r => geoMean(COL_DEFI.map(ci => num(r[ci])))));
+  const globGeo = avg(rows.map(r => geoMean([...COL_RESP, ...COL_DEFI].map(ci => num(r[ci])))));
+
+  const fmt = v => v !== null ? Math.round(v * 10) / 10 + '%' : '—';
+  document.getElementById('kpiRespArith').textContent = fmt(respArithPct);
+  document.getElementById('kpiRespGeo').textContent = fmt(respGeo);
+  document.getElementById('kpiDefiArith').textContent = fmt(defiArithPct);
+  document.getElementById('kpiDefiGeo').textContent = fmt(defiGeo);
+  document.getElementById('kpiGlobArith').textContent = fmt(globArithPct);
+  document.getElementById('kpiGlobGeo').textContent = fmt(globGeo);
+
+  renderCompare([
+    { label: 'Responsabilités', arith: respArithPct, geo: respGeo, color: 'var(--blue)', colorGeo: '#1a5a9a' },
+    { label: 'Défis', arith: defiArithPct, geo: defiGeo, color: 'var(--green)', colorGeo: '#6a8a15' },
+    { label: 'Global', arith: globArithPct, geo: globGeo, color: 'var(--teal)', colorGeo: '#007a92' },
+  ]);
+
+  renderBarRows('barsResp', RESP_QUESTIONS, respAvgs, 'var(--blue)');
+  renderBarRows('barsDefi', DEFI_QUESTIONS, defiAvgs, 'var(--green)');
+
   document.getElementById('dashboard').style.display = 'grid';
-
-  const rAvgs = COL_RESP.map(ci => avg(rows.map(r => num(r[ci]))));
-  const dAvgs = COL_DEFI.map(ci => avg(rows.map(r => num(r[ci]))));
-
-  const ra = avg(rAvgs)*10, da = avg(dAvgs)*10, ga = avg([...rAvgs, ...dAvgs])*10;
-  const rg = avg(rows.map(r => geoMean(COL_RESP.map(ci => num(r[ci])))));
-  const dg = avg(rows.map(r => geoMean(COL_DEFI.map(ci => num(r[ci])))));
-  const gg = avg(rows.map(r => geoMean([...COL_RESP, ...COL_DEFI].map(ci => num(r[ci])))));
-
-  const fmt = v => Math.round(v*10)/10 + '%';
-  document.getElementById('kpiRespArith').textContent = fmt(ra);
-  document.getElementById('kpiRespGeo').textContent = fmt(rg);
-  document.getElementById('kpiDefiArith').textContent = fmt(da);
-  document.getElementById('kpiDefiGeo').textContent = fmt(dg);
-  document.getElementById('kpiGlobArith').textContent = fmt(ga);
-  document.getElementById('kpiGlobGeo').textContent = fmt(gg);
-
-  renderCompareRows(ra, rg, da, dg, ga, gg);
+  document.getElementById('footerBar').style.display = 'flex';
+  document.getElementById('lastSync').textContent = 'Actualisé à ' + new Date().toLocaleTimeString('fr-CA');
 }
 
-function renderCompareRows(ra, rg, da, dg, ga, gg) {
-  const el = document.getElementById('compareRows'); el.innerHTML = '';
-  const data = [{l:'Responsabilités',a:ra,g:rg,c:'var(--blue)'},{l:'Défis',a:da,g:dg,c:'var(--green)'},{l:'Global',a:ga,g:gg,c:'var(--teal)'}];
-  data.forEach(d => {
-    const diff = Math.round((d.a - d.g)*10)/10;
-    el.innerHTML += `<div style="margin-bottom:15px;">
-      <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:5px;"><b>${d.l}</b> <span style="font-weight:700; color:#c53030">Écart: -${diff}%</span></div>
-      <div class="compare-bar-wrap"><div class="compare-bar" style="width:${d.a}%; background:${d.c}; opacity:0.4;"></div></div>
-      <div class="compare-bar-wrap" style="margin-top:2px;"><div class="compare-bar" style="width:${d.g}%; background:${d.c};"></div></div>
-    </div>`;
-  });
-}
+// ── DATA LOADING ──
 
 async function loadData() {
   document.getElementById('loadingState').style.display = 'block';
   document.getElementById('errorState').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('filterBar').style.display = 'none';
 
   const text = await fetchCSVFromProxy();
   if (text) {
-    allRows = parseCSV(text);
-    document.getElementById('loadingState').style.display = 'none';
-    
-    // Date locale standard
-    const d = new Date();
-    const today = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
-    document.getElementById('dateFilter').value = today;
-
-    renderDashboard();
-  } else {
-    document.getElementById('loadingState').style.display = 'none';
-    document.getElementById('errorState').style.display = 'block';
+    const rows = parseCSV(text);
+    if (rows.length > 0) {
+      allRows = rows;
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('filterBar').style.display = 'flex';
+      populatePosteFilter();
+      const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+      document.getElementById('dateFilter').value = today;
+      renderDashboard();
+      return;
+    }
   }
+  // Tous les proxies ont échoué
+  document.getElementById('loadingState').style.display = 'none';
+  document.getElementById('errorState').style.display = 'block';
 }
 
-document.getElementById('dateBadge').textContent = new Date().toLocaleDateString('fr-CA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+// Initialisation
+document.getElementById('dateBadge').textContent = new Date().toLocaleDateString('fr-CA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'America/New_York' });
 loadData();
+
+// ── Upload CSV d'urgence ─────────────────────────────────────────────────────
+function openFileDialog() {
+  document.getElementById('csvFileInput').click();
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('uploadDrop').classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) processCSVFile(file);
+}
+
+function processCSVFile(file) {
+  if (!file || !file.name.endsWith('.csv')) {
+    showUploadStatus('Fichier invalide — choisissez un fichier .csv', false);
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = e => {
+    const rows = parseCSV(e.target.result);
+    if (!rows.length) {
+      showUploadStatus('Aucune donnée valide trouvée dans ce fichier', false);
+      return;
+    }
+    allRows = rows;
+    showUploadStatus('✓ ' + rows.length + ' participant' + (rows.length>1?'s':'') + ' chargé' + (rows.length>1?'s':'') + ' depuis le fichier CSV', true);
+    document.getElementById('filterBar').style.display = 'flex';
+    document.getElementById('errorState').style.display = 'none';
+    document.getElementById('loadingState').style.display = 'none';
+    populatePosteFilter();
+    const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+    document.getElementById('dateFilter').value = today;
+    renderDashboard();
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function showUploadStatus(msg, ok) {
+  const el = document.getElementById('uploadStatus');
+  el.textContent = msg;
+  el.className = 'upload-status ' + (ok ? 'ok' : 'err');
+}
+
+function openCSVLink() {
+  const url = document.getElementById('csvLinkInput').value.trim();
+  if (url) window.open(url, '_blank');
+}
 </script>
+
+<!-- SECTION URGENCE CSV -->
+<div class="emergency-section" id="emergencySection">
+  <div class="emergency-card">
+    <div class="emergency-title">⚡ Plan B — Chargement manuel du CSV</div>
+    <div class="emergency-subtitle">Si le rafraîchissement automatique ne fonctionne pas, suivez ces 2 étapes</div>
+    <div class="emergency-steps">
+
+      <div class="estep">
+        <div class="estep-num">1</div>
+        <div class="estep-content">
+          <div class="estep-label">Télécharger le CSV</div>
+          <div class="estep-desc">Collez le lien ci-dessous et cliquez Télécharger</div>
+          <input class="csv-link-input" id="csvLinkInput"
+                 value="https://sheet.zohopublic.com/sheet/published/w183q3cdc79a4595b490cb7eec15a24227ccf?download=csv&sheetname=Feuille1"
+                 placeholder="Collez le lien CSV ici…"/>
+          <button class="download-btn" onclick="openCSVLink()">⬇ Télécharger le CSV</button>
+        </div>
+      </div>
+
+      <div class="estep">
+        <div class="estep-num">2</div>
+        <div class="estep-content">
+          <div class="estep-label">Charger le fichier dans le dashboard</div>
+          <div class="estep-desc">Glissez le fichier téléchargé ici ou cliquez pour sélectionner</div>
+          <div class="upload-drop" id="uploadDrop"
+               onclick="openFileDialog()"
+               ondragover="event.preventDefault();this.classList.add('drag-over')"
+               ondragleave="this.classList.remove('drag-over')"
+               ondrop="handleDrop(event)">
+            <p>📂 Glissez votre fichier .csv ici</p>
+            <button class="upload-drop-btn" onclick="event.stopPropagation();openFileDialog()">Choisir un fichier</button>
+          </div>
+          <input type="file" id="csvFileInput" accept=".csv" style="display:none"
+                 onchange="processCSVFile(this.files[0])"/>
+          <div class="upload-status" id="uploadStatus"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
