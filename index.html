@@ -424,7 +424,8 @@ function params() {
     email:   p.get('E-mail')     || p.get('email')   || '',
     dept:    p.get('Département') || p.get('dept')    || '',
     pos:     p.get('Poste')      || p.get('pos')      || '',
-    company: p.get('Pharmacie')  || p.get('company')  || '',
+    company:      p.get('Pharmacie')    || p.get('company')      || '',
+    date_atelier: p.get('date_atelier') || p.get('dateAtelier')  || '',
     // Responsabilités: alias order A,D,E,C,B → questions 1,2,3,4,5
     a: +p.get('a'), // Q1 – Définir les gains
     d: +p.get('d'), // Q2 – Organiser
@@ -498,10 +499,11 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // Participant line
   const pl = document.getElementById('participantLine');
-  const namePart = p.name    ? `<strong>${p.name}</strong>` : 'Participant';
-  const posPart  = p.pos     ? ` · ${p.pos}`     : '';
-  const orgPart  = p.company ? ` · ${p.company}` : '';
-  pl.innerHTML = `${namePart}${posPart}${orgPart}`;
+  const namePart  = p.name         ? `<strong>${p.name}</strong>` : 'Participant';
+  const posPart   = p.pos          ? ` · ${p.pos}`                : '';
+  const orgPart   = p.company      ? ` · ${p.company}`            : '';
+  const datePart  = p.date_atelier ? ` · ${p.date_atelier}` : '';
+  pl.innerHTML = `${namePart}${posPart}${orgPart}${datePart}`;
 
   // Scores
   const respSum = respVals.reduce((a, b) => a + b, 0);
